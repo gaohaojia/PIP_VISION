@@ -1,0 +1,6 @@
+Log file created at: 2023/02/16 22:16:52
+Running on machine: pip2-desktop
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+W0216 22:16:52.340489  9988 MVCameraBase.cpp:98] Device:(name:MV-SUA134GC#0 sn:041130220339)Lost
+W0216 22:16:54.776629  9988 MVCameraBase.cpp:118] Device:(name:MV-SUA134GC#0 sn:041130220339)ReConnected, TolCount:1
+W0216 22:17:03.142253  9988 MVCameraBase.cpp:98] Device:(name:MV-SUA134GC#0 sn:041130220339)Lost
