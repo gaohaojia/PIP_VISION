@@ -22,14 +22,13 @@ import numpy
 import mvsdk
 import platform
 import serial
-
-CONF_THRESH = 0.5  # 置信度阈值
+CONF_THRESH = 0.5
 IOU_THRESHOLD = 0.1
-check_fr = 0  # 友军信息
-fr = []
-pre_x = 0
-pre_y = 0
-pre_time = 0.1
+check_fr=0
+fr=[]
+pre_x=0
+pre_y=0
+pre_time=0.1
 
 
 def get_img_path_batches(batch_size, img_dir):
@@ -80,8 +79,6 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
             thickness=tf,
             lineType=cv2.LINE_AA,
         )
-
-
 '''
 def traned(self, data0):
     e = bin(data0)
@@ -99,7 +96,6 @@ def traned(self, data0):
 
 '''
 
-
 class YoLov5TRT(object):
     """
     description: A YOLOv5 class that warps TensorRT ops, preprocess and postprocess ops.
@@ -114,7 +110,9 @@ class YoLov5TRT(object):
 
         # Deserialize the engine from file
         with open(engine_file_path, "rb") as f:
+            print(f" f is {f}")
             engine = runtime.deserialize_cuda_engine(f.read())
+            print(f'kewua{engine}')
         context = engine.create_execution_context()
 
         host_inputs = []
@@ -152,19 +150,16 @@ class YoLov5TRT(object):
         self.cuda_outputs = cuda_outputs
         self.bindings = bindings
         self.batch_size = engine.max_batch_size
-
-    def traned(self, data0):
-        b16s = (4 - len(hex(data0)[2:])) * '0' + hex(data0)[2:]
-        # print(f'4545454545454545{b16s}')
-        return [b16s[:2], b16s[2:]]
-
-    def protectfr(self, all, friends):
-        new = []
+    def traned(self,data0):
+        b16s=(4 - len(hex(data0)[2:])) * '0' + hex(data0)[2:]
+        #print(f'4545454545454545{b16s}')
+        return [b16s[:2],b16s[2:]]
+    def protectfr(self,all,friends):
+        new=[]
         for i in all.numpy().tolist():
             if i not in (friends):
                 new.append(i)
         return torch.tensor(new)
-
     def infer(self, input_image_path):
         start = time.time()
         threading.Thread.__init__(self)
@@ -205,43 +200,45 @@ class YoLov5TRT(object):
         cuda.memcpy_dtoh_async(host_outputs[0], cuda_outputs[0], stream)
         # Synchronize the stream
         stream.synchronize()
-        # end = time.time()
+        #end = time.time()
         # Remove any context from the top of the context stack, deactivating it.
         self.ctx.pop()
         # Here we use the first row of output in that batch_size = 1
         output = host_outputs[0]
         # Do postprocess
-        side1 = time.time()
-        print(f"side1\t{(side1 - start) * 1000:.3f}")
+        side1=time.time()
+        print(f"side1\t{(side1-start)*1000:.3f}")
         result_boxes, result_scores, result_classid = self.post_process(
             output, origin_h, origin_w)
 
-        # print(f"retboxes{result_boxes}")
+        #print(f"retboxes{result_boxes}")
         # Draw rectangles and labels on the original image
         try:
             ser.write(b'\x45')
         except:
-            print("wrong open")  # print(boxes[mindex])
+            print("wrong open")#print(boxes[mindex])
+
 
         # er.write(b'\x64')
         # ser.write(hex(206).encode('utf-8'))
 
         color = 0
-        friends = []
+        friends=[]
         print(f'my recieve{ser.read()}')
         if ser.read() == b'\xff':
-            color = 1  # blue
-            friends = [0, 1, 2, 3]
+            color = 1  #blue
+            friends=[0,1,2,3]
 
         elif ser.read() == b'\x00':
-            color = 2  # red
-            friends = [4, 5, 6, 7]
+            color = 2   #red
+            friends=[4,5,6,7]
         print(f"fr\t{friends}")
-        global check_fr, fr
-        if check_fr == 0 and len(friends) != 0:
-            fr = friends
-            check_fr = 1
-        friends_list = fr + [8, 9, 10, 11]
+        global  check_fr,fr
+        if check_fr==0 and len(friends)!=0:
+            fr=friends
+            check_fr=1
+        friends_list=fr+[8,9,10,11]
+
 
         print(f"frdlist{friends_list}")
         exit_friends_boxes = []
@@ -258,10 +255,10 @@ class YoLov5TRT(object):
 
         side2 = time.time()
         print(f"side2\t{(side2 - side1) * 1000:.3f}")
-        # print(f"resultbox{result_boxes}")
-        # print(f"resultscore{result_scores}")
+        #print(f"resultbox{result_boxes}")
+        #print(f"resultscore{result_scores}")
 
-        # print(f"resultclass{result_classid}")
+        #print(f"resultclass{result_classid}")
         boxes = np.array(result_boxes)
         # print(f'boxes={boxes}')
         # print(boxes)
@@ -283,106 +280,104 @@ class YoLov5TRT(object):
             mindex = -1
         else:
             mindex = np.argmin(numlist)
-            # print(f"xxyy\t\t\t\t{int(boxes[mindex][0])}{int(boxes[mindex][1])}")
+            #print(f"xxyy\t\t\t\t{int(boxes[mindex][0])}{int(boxes[mindex][1])}")
 
         try:
-            # ser.write(b'\x45')
-            global pre_x, pre_y, pre_time
-            x_now = int((boxes[mindex][0] + boxes[mindex][2]) / 2)
-            y_now = int((boxes[mindex][1] + boxes[mindex][3]) / 2)
+                #ser.write(b'\x45')
+            global pre_x,pre_y,pre_time
+            x_now=int((boxes[mindex][0]+boxes[mindex][2])/2)
+            y_now=int((boxes[mindex][1]+boxes[mindex][3])/2)
             x_1, x_2 = self.traned((x_now))
             y_1, y_2 = self.traned((y_now))
-            detax = x_now - pre_x
-            detay = y_now - pre_y
+            detax=x_now-pre_x
+            detay=y_now-pre_y
 
-            xx_1, xx_2 = self.traned((int(pre_x + detax / 2)))
+            xx_1,xx_2=self.traned((int(pre_x+detax/2)))
             yy_1, yy_2 = self.traned((int(pre_y + detay / 2)))
             print("fgh")
-            print(x_1, x_2, xx_1, xx_2)
+            print(x_1, x_2,xx_1,xx_2)
 
-            deta_dis = np.sqrt((detay ** 2 + detax ** 2))
-            speed_1, speed_2 = self.traned(int(500 * pre_time))
-            pre_x = x_now
-            pre_y = y_now
+            deta_dis=np.sqrt((detay**2+detax**2))
+            speed_1,speed_2=self.traned(int(500*pre_time))
+            pre_x=x_now
+            pre_y=y_now
 
 
         except:
             print("wrong traning")
         side3 = time.time()
         print(f"side3\t{(side3 - side2) * 1000:.3f}")
-        # print(numlist)
+        #print(numlist)
         tag_size = 0.05
         tag_size_half = 0.02
-        half_Weight = [229 / 4, 152 / 4]
-        half_Height = [126 / 4, 142 / 4]
+        half_Weight=[229/4,152/4]
+        half_Height=[126/4,142/4]
 
         fx = 1056.4967111
         fy = 1056.6221413136
         cx = 657.4915775667
         cy = 508.2778608
-        xxx = -0.392652606
-        K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # neican
+        xxx=-0.392652606
+        K = np.array([[fx, xxx, cx],[0, fy, cy],[0, 0, 1]], dtype=np.float64)  # neican
+
+
 
         '''objPoints = np.array([[0, 0, 0],
                               [0, 52, 0],
                               [218, 0, 0],
                               [218, 52, 0]], dtype=np.float64)  # worldpoint'''
-        # imgPoints = np.array([[608, 167], [514, 167], [518, 69], [611, 71]], dtype=np.float64)  # camerapoint
+            #imgPoints = np.array([[608, 167], [514, 167], [518, 69], [611, 71]], dtype=np.float64)  # camerapoint
         cameraMatrix = K
         distCoeffs = None
         side4 = time.time()
         print(f"side4\t{(side4 - side3) * 1000:.3f}")
-        #  print(box)
-        if mindex != -1:
+            #  print(box)
+        if mindex != -1 :
             box = result_boxes[mindex]
             print(f"boxxx{box}")
-            imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
-                                 dtype=np.float64)
-            # label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
-            if mindex % 4 == 0:
-                idn = 0
+            imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]], dtype=np.float64)
+                #label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
+            if mindex%4==0:
+                idn=0
             else:
-                idn = 1
+                idn=1
             objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
-                                  [half_Weight[idn], -half_Height[idn], 0],
-                                  [half_Weight[idn], half_Height[idn], 0],
-                                  [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
+                                      [half_Weight[idn], -half_Height[idn], 0],
+                                      [half_Weight[idn], half_Height[idn], 0],
+                                      [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
             retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
-            # print(f'hahaha{retval}{rvec}{tvec}')
+    # print(f'hahaha{retval}{rvec}{tvec}')
             rotM = cv2.Rodrigues(rvec)[0]
-            # position = -np.matrix(rotM).T * np.matrix(tvec)
+# position = -np.matrix(rotM).T * np.matrix(tvec)
             distance = np.linalg.norm(tvec)
 
             try:
-                plot_one_box(box, image_raw,
-                             label="{}".format(categories[int(result_classid[mindex])]))
-
-
+                plot_one_box(box,image_raw,label="{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex]),)
             except:
-                '''666'''
-            # print(categories)
-            # label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
-            # print(f"label={label}")
-            # ser.write((label.encode("gbk")))
-            # ser.write((distance.encode("gbk")))
+                    '''666'''
+            #print(categories)
+                #label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
+                #print(f"label={label}")
+                #ser.write((label.encode("gbk")))
+                #ser.write((distance.encode("gbk")))
             rvec_matrix = cv2.Rodrigues(rvec)[0]
             proj_matrix = np.hstack((rvec_matrix, rvec))
             eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
-            pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
-            distance = str(int(distance / 10))
-            # label=str(label)
+            pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])),str(int(eulerAngles[2]))
+            distance=str(int(distance/10))
+                #label=str(label)
             print(f'pryd{pitch},{yaw},{roll},{distance}')
-            # ser.write((label.encode("UTF-8")))
-            # ser.write('\t'.encode('gbk'))
+                #ser.write((label.encode("UTF-8")))
+                #ser.write('\t'.encode('gbk'))
             # dist_1, dist_2 = traned(int(distance))
             dis_1, dis_2 = self.traned((int(distance)))
-        zero11, zero2 = self.traned(0)
-        # e = bin(int(240-boxes[mindex][1]) )
+        zero11,zero2=self.traned(0)
+            # e = bin(int(240-boxes[mindex][1]) )
 
-        # pi_1, pi_2 = self.traned((int(pitch)+180))
+                #pi_1, pi_2 = self.traned((int(pitch)+180))
 
         try:
-            # ser.write(b'\x45')
+            #ser.write(b'\x45')
             ser.write(bytes.fromhex(dis_1))  # x-mid
             ser.write(bytes.fromhex(dis_2))
             ser.write(bytes.fromhex(xx_1))  # x-mid
@@ -394,7 +389,7 @@ class YoLov5TRT(object):
 
             # print(f"distance{bytes.fromhex(dis_1)}{bytes.fromhex(dis_2)}")
         except:
-            # ser.write(b'\x45')
+            #ser.write(b'\x45')
             ser.write(bytes.fromhex(zero11))  # x-mid
             ser.write(bytes.fromhex(zero11))
             ser.write(bytes.fromhex(zero11))  # x-mid
@@ -405,7 +400,7 @@ class YoLov5TRT(object):
             ser.write(bytes.fromhex(zero11))
         ser.write(b'\x45')
         try:
-            # ser.write(b'\x45')
+            #ser.write(b'\x45')
             ser.write(bytes.fromhex(dis_1))  # x-mid
             ser.write(bytes.fromhex(dis_2))
             ser.write(bytes.fromhex(x_1))  # x-mid
@@ -415,7 +410,7 @@ class YoLov5TRT(object):
             ser.write(bytes.fromhex(speed_1))  # x-mid
             ser.write(bytes.fromhex(speed_2))
         except:
-            # ser.write(b'\x45')
+            #ser.write(b'\x45')
             ser.write(bytes.fromhex(zero11))  # x-mid
             ser.write(bytes.fromhex(zero11))
             ser.write(bytes.fromhex(zero11))  # x-mid
@@ -428,6 +423,7 @@ class YoLov5TRT(object):
         print(f"side5\t{(side5 - side4) * 1000:.3f}")
         end = time.time()
         return image_raw, end - start
+
 
     def destroy(self):
         # Remove any context from the top of the context stack, deactivating it.
@@ -566,17 +562,17 @@ class inferThread(threading.Thread):
     def __init__(self, yolov5_wrapper):
         threading.Thread.__init__(self)
         self.yolov5_wrapper = yolov5_wrapper
-        # self.image_path_batch = image_path_batch
-
+        #self.image_path_batch = image_path_batch
     def infer(self, frame):
+
         batch_image_raw, use_time = self.yolov5_wrapper.infer(frame)
 
-        # for i, img_path in enumerate(self.image_path_batch):
-        #      parent, filename = os.path.split(img_path)
-        #     save_name = os.path.join('output', filename)
-        # Save image
-        #  cv2.imwrite(save_name, batch_image_raw[i])
-        #  print('input->{}, time->{:.2f}ms, saving into output/'.format(self.image_path_batch, use_time * 1000))
+       # for i, img_path in enumerate(self.image_path_batch):
+      #      parent, filename = os.path.split(img_path)
+       #     save_name = os.path.join('output', filename)
+            # Save image
+          #  cv2.imwrite(save_name, batch_image_raw[i])
+      #  print('input->{}, time->{:.2f}ms, saving into output/'.format(self.image_path_batch, use_time * 1000))
 
         return batch_image_raw, use_time
 
@@ -593,7 +589,7 @@ class warmUpThread(threading.Thread):
 
 if __name__ == "__main__":
     # load custom plugins
-    ser = serial.Serial("/dev/ttyTHS0", 115200, timeout=0.0001)  # Linux系统使用com1口连接串行口 #第二个是波特率
+    ser = serial.Serial("/dev/ttyTHS0", 115200, timeout=0.0001)  # Linux系统使用com1口连接串行口
     print(ser.bytesize)
     print(ser.parity)
     print(ser.stopbits)
@@ -601,6 +597,8 @@ if __name__ == "__main__":
     nDev = len(DevList)
     if nDev < 1:
         print("No camera was found!")
+        sys.exit()
+
 
     for i, DevInfo in enumerate(DevList):
         print("{}: {} {}".format(i, DevInfo.GetFriendlyName(), DevInfo.GetPortType()))
@@ -614,6 +612,7 @@ if __name__ == "__main__":
         hCamera = mvsdk.CameraInit(DevInfo, -1, -1)
     except mvsdk.CameraException as e:
         print("CameraInit Failed({}): {}".format(e.error_code, e.message))
+
 
     # 获取相机特性描述
     cap = mvsdk.CameraGetCapability(hCamera)
@@ -638,21 +637,19 @@ if __name__ == "__main__":
     mvsdk.CameraPlay(hCamera)
 
     # 计算RGB buffer所需的大小，这里直接按照相机的最大分辨率来分配
-    FrameBufferSize = cap.sResolutionRange.iWidthMax * cap.sResolutionRange.iHeightMax * 3
+    FrameBufferSize = cap.sResolutionRange.iWidthMax* cap.sResolutionRange.iHeightMax *3
 
     # 分配RGB buffer，用来存放ISP输出的图像
     # 备注：从相机传输到PC端的是RAW数据，在PC端通过软件ISP转为RGB数据（如果是黑白相机就不需要转换格式，但是ISP还有其它处理，所以也需要分配这个buffer）
     pFrameBuffer = mvsdk.CameraAlignMalloc(FrameBufferSize, 16)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--engine', nargs='+', type=str,
-                        default="/home/pip-2/下载/tensorrtx/yolov5_new/build/best_all.engine",
-                        help='.engine path(s)')  # 参数路径
+    parser.add_argument('--engine', nargs='+', type=str, default="/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/best.engine", help='.engine path(s)')
     parser.add_argument('--save', type=int, default=0, help='save?')
     opt = parser.parse_args()
-    PLUGIN_LIBRARY = "/home/pip-2/下载/tensorrtx/yolov5_new/build/libmyplugins.so"  # 参数网络配置
+    PLUGIN_LIBRARY = "/home/pip/Desktop/yolov5+tensorrt/yolov5/builds/libmyplugins.so"
     engine_file_path = opt.engine
-
+    print(f'enginepath:{engine_file_path}')
     ctypes.CDLL(PLUGIN_LIBRARY)
 
     # load coco labels
@@ -673,15 +670,15 @@ if __name__ == "__main__":
                   "armor5blue", "armor1grey", "armor3grey", "armor4grey", "armor5grey"]
 
     yolov5_wrapper = YoLov5TRT(engine_file_path)
-    # cap = cv2.VideoCapture(0)
-    datavount = 0
+    #cap = cv2.VideoCapture(0)
+    datavount=0
     try:
-        # thread1 = inferThread(yolov5_wrapper)
-        # thread1.start()
-        # thread1.join()
+        #thread1 = inferThread(yolov5_wrapper)
+        #thread1.start()
+        #thread1.join()
         while 1:
-            begin = time.time()
-            # global pre_time
+            begin=time.time()
+            #global pre_time
             pRawData, FrameHead = mvsdk.CameraGetImageBuffer(hCamera, 200)
             mvsdk.CameraImageProcess(hCamera, pRawData, pFrameBuffer, FrameHead)
             mvsdk.CameraReleaseImageBuffer(hCamera, pRawData)
@@ -696,27 +693,27 @@ if __name__ == "__main__":
             frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
                                    1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
 
+
             # cv2.Rodrigues()
 
-            frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_LINEAR)
-            # _, frame = frame.read()
-            begin2 = time.time()
 
-            img, t = yolov5_wrapper.infer(frame)  # 重要
-            end2 = time.time()
+            frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
+            #_, frame = frame.read()
+            begin2=time.time()
+
+            img, t = yolov5_wrapper.infer(frame)
+            end2=time.time()
             end = time.time()
 
-            pre_time = (end - begin)
+            pre_time=(end-begin)
             cv2.waitKey(1)
-            # print("mid")
-            cv2.imshow("result", img)  # 比赛时候注释
-            """if couunt_get_frame % 15 == and couunt_get_frame > 1800 and pic_num < 1000:
-                save_pic = "/home/pip/1035/get_pic/" + str(pic_num) + ".png"
-                pic_num += 1
-                cv2.imwrite(save_pic, frame)"""
+            #print("mid")
+            cv2.imshow("result", img)
 
-            end = time.time()
 
-            # print(f"time is{end*1000-begin*1000}ms\t\t{end2*1000-begin2*1000}ms")
+            end=time.time()
+            
+	 
+            #print(f"time is{end*1000-begin*1000}ms\t\t{end2*1000-begin2*1000}ms")
     except:
         'g'
