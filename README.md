@@ -1,5 +1,5 @@
-# PIP_YOLOv5_detect
-PIP战队YOLOv5版本，detect源码仓库。
+# PIP_VISION
+PIP战队视觉组源码仓库。
 ## 前言
 在这里推荐一个学习Git的[网站](https://www.liaoxuefeng.com/wiki/896043488029600)，不熟悉Git的同学可以学习了解，对咱们PIP战队和自己未来做大项目都有帮助。
 ## 注意事项
