@@ -1,1 +1,3 @@
-python3 /home/pip/Desktop/yolov5+tensorrt/yolov5/detect.py
+CURRENT_DIR="$(cd $(dirname $0); pwd)/detect.py"
+echo $CURRENT_DIR
+python3 $CURRENT_DIR
