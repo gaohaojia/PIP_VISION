@@ -677,7 +677,7 @@ if __name__ == "__main__":
         #thread1.start()
         #thread1.join()
         while 1:
-            begin=time.time()
+            begin = time.time()
             #global pre_time
             pRawData, FrameHead = mvsdk.CameraGetImageBuffer(hCamera, 200)
             mvsdk.CameraImageProcess(hCamera, pRawData, pFrameBuffer, FrameHead)
@@ -699,13 +699,13 @@ if __name__ == "__main__":
 
             frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
             #_, frame = frame.read()
-            begin2=time.time()
+            begin2 = time.time()
 
             img, t = yolov5_wrapper.infer(frame)
             end2=time.time()
             end = time.time()
 
-            pre_time=(end-begin)
+            pre_time = (end - begin)
             cv2.waitKey(1)
             #print("mid")
             cv2.imshow("result", img)
