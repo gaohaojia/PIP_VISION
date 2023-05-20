@@ -1,10 +1,4 @@
-"""
-An example that uses TensorRT's Python api to make inferences.
-"""
-import ctypes
-import os
 import random
-import sys
 import threading
 import time
 import cv2
@@ -13,31 +7,13 @@ import pycuda.driver as cuda
 import tensorrt as trt
 import torch
 import torchvision
-import argparse
-import cv2
-from sdk import mvsdk
-import serial
+
 CONF_THRESH = 0.5
 IOU_THRESHOLD = 0.1
 check_fr=0
 fr=[]
 pre_x=0
 pre_y=0
-pre_time=0.1
-
-
-def get_img_path_batches(batch_size, img_dir):
-    ret = []
-    batch = []
-    for root, dirs, files in os.walk(img_dir):
-        for name in files:
-            if len(batch) == batch_size:
-                ret.append(batch)
-                batch = []
-            batch.append(os.path.join(root, name))
-    if len(batch) > 0:
-        ret.append(batch)
-    return ret
 
 def plot_one_box(x, img, color=None, label=None, line_thickness=None):
     """
@@ -74,13 +50,16 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
             lineType=cv2.LINE_AA,
         )
 
-
 class YoLov5TRT(object):
     """
     description: A YOLOv5 class that warps TensorRT ops, preprocess and postprocess ops.
     """
 
-    def __init__(self, engine_file_path):
+    def __init__(self, engine_file_path, ser, categories):
+        
+        self.ser = ser
+        self.categories = categories
+        
         # Create a Context on this device,
         self.ctx = cuda.Device(0).make_context()
         stream = cuda.Stream()
@@ -142,7 +121,7 @@ class YoLov5TRT(object):
                 new.append(i)
         return torch.tensor(new)
     
-    def infer(self, input_image_path):
+    def infer(self, input_image_path, pre_time):
         start = time.time()
         threading.Thread.__init__(self)
         # Make self the active context, pushing it on top of the context stack.
@@ -163,8 +142,7 @@ class YoLov5TRT(object):
         batch_origin_w = []
         batch_input_image = np.empty(shape=[self.batch_size, 3, self.input_h, self.input_w])
 
-        input_image, image_raw, origin_h, origin_w = self.preprocess_image(input_image_path
-                                                                           )
+        input_image, image_raw, origin_h, origin_w = self.preprocess_image(input_image_path)
 
         batch_origin_h.append(origin_h)
         batch_origin_w.append(origin_w)
@@ -196,22 +174,22 @@ class YoLov5TRT(object):
         #print(f"retboxes{result_boxes}")
         # Draw rectangles and labels on the original image
         try:
-            ser.write(b'\x45')
+            self.ser.write(b'\x45')
         except:
             print("wrong open")#print(boxes[mindex])
 
 
-        # er.write(b'\x64')
-        # ser.write(hex(206).encode('utf-8'))
+        # self.ser.write(b'\x64')
+        # self.ser.write(hex(206).encode('utf-8'))
 
         color = 0
         friends=[]
-        print(f'my recieve{ser.read()}')
-        if ser.read() == b'\xff':
+        print(f'my recieve{self.ser.read()}')
+        if self.ser.read() == b'\xff':
             color = 1  #blue
             friends=[0,1,2,3]
 
-        elif ser.read() == b'\x00':
+        elif self.ser.read() == b'\x00':
             color = 2   #red
             friends=[4,5,6,7]
         print(f"fr\t{friends}")
@@ -248,7 +226,7 @@ class YoLov5TRT(object):
 
         # print(f"shape={boxes.shape[0]}")
         numlist = []
-        # readata=ser.read
+        # readata=self.ser.read
         for isb in range(inde):
             numlist.append(
                 float(((boxes[isb][0] + boxes[isb][2]) / 2 - 320) ** 2 + ((boxes[isb][1] + boxes[isb][3]) - 240) ** 2))
@@ -265,24 +243,24 @@ class YoLov5TRT(object):
             #print(f"xxyy\t\t\t\t{int(boxes[mindex][0])}{int(boxes[mindex][1])}")
 
         try:
-                #ser.write(b'\x45')
-            global pre_x,pre_y,pre_time
-            x_now=int((boxes[mindex][0]+boxes[mindex][2])/2)
-            y_now=int((boxes[mindex][1]+boxes[mindex][3])/2)
+            #self.ser.write(b'\x45')
+            global pre_x, pre_y
+            x_now = int((boxes[mindex][0] + boxes[mindex][2]) / 2)
+            y_now = int((boxes[mindex][1] + boxes[mindex][3]) / 2)
             x_1, x_2 = self.traned((x_now))
             y_1, y_2 = self.traned((y_now))
-            detax=x_now-pre_x
-            detay=y_now-pre_y
+            detax = x_now-pre_x
+            detay = y_now-pre_y
 
-            xx_1,xx_2=self.traned((int(pre_x+detax/2)))
+            xx_1,xx_2=self.traned((int(pre_x + detax / 2)))
             yy_1, yy_2 = self.traned((int(pre_y + detay / 2)))
             print("fgh")
-            print(x_1, x_2,xx_1,xx_2)
+            print(x_1, x_2, xx_1, xx_2)
 
-            deta_dis=np.sqrt((detay**2+detax**2))
-            speed_1,speed_2=self.traned(int(500*pre_time))
-            pre_x=x_now
-            pre_y=y_now
+            deta_dis = np.sqrt((detay ** 2 + detax ** 2))
+            speed_1, speed_2 = self.traned(int(500 * pre_time))
+            pre_x = x_now
+            pre_y = y_now
 
 
         except:
@@ -292,15 +270,15 @@ class YoLov5TRT(object):
         #print(numlist)
         tag_size = 0.05
         tag_size_half = 0.02
-        half_Weight=[229/4,152/4]
-        half_Height=[126/4,142/4]
+        half_Weight = [229/4,152/4]
+        half_Height = [126/4,142/4]
 
         fx = 1056.4967111
         fy = 1056.6221413136
         cx = 657.4915775667
         cy = 508.2778608
-        xxx=-0.392652606
-        K = np.array([[fx, xxx, cx],[0, fy, cy],[0, 0, 1]], dtype=np.float64)  # neican
+        xxx = -0.392652606
+        K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # neican
 
 
 
@@ -328,20 +306,20 @@ class YoLov5TRT(object):
                                       [half_Weight[idn], half_Height[idn], 0],
                                       [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
             retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
-    # print(f'hahaha{retval}{rvec}{tvec}')
+            # print(f'hahaha{retval}{rvec}{tvec}')
             rotM = cv2.Rodrigues(rvec)[0]
-# position = -np.matrix(rotM).T * np.matrix(tvec)
+            # position = -np.matrix(rotM).T * np.matrix(tvec)
             distance = np.linalg.norm(tvec)
 
             try:
-                plot_one_box(box,image_raw,label="{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex]),)
+                plot_one_box(box,image_raw,label="{}:{:.2f}".format(self.categories[int(result_classid[mindex])], result_scores[mindex]),)
             except:
                     '''666'''
             #print(categories)
                 #label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
                 #print(f"label={label}")
-                #ser.write((label.encode("gbk")))
-                #ser.write((distance.encode("gbk")))
+                #self.ser.write((label.encode("gbk")))
+                #self.ser.write((distance.encode("gbk")))
             rvec_matrix = cv2.Rodrigues(rvec)[0]
             proj_matrix = np.hstack((rvec_matrix, rvec))
             eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
@@ -349,8 +327,8 @@ class YoLov5TRT(object):
             distance=str(int(distance/10))
                 #label=str(label)
             print(f'pryd{pitch},{yaw},{roll},{distance}')
-                #ser.write((label.encode("UTF-8")))
-                #ser.write('\t'.encode('gbk'))
+                #self.ser.write((label.encode("UTF-8")))
+                #self.ser.write('\t'.encode('gbk'))
             # dist_1, dist_2 = traned(int(distance))
             dis_1, dis_2 = self.traned((int(distance)))
         zero11,zero2=self.traned(0)
@@ -359,59 +337,59 @@ class YoLov5TRT(object):
                 #pi_1, pi_2 = self.traned((int(pitch)+180))
 
         try:
-            #ser.write(b'\x45')
-            ser.write(bytes.fromhex(dis_1))  # x-mid
-            ser.write(bytes.fromhex(dis_2))
-            ser.write(bytes.fromhex(xx_1))  # x-mid
-            ser.write(bytes.fromhex(xx_2))
-            ser.write(bytes.fromhex(yy_1))  # x-mid
-            ser.write(bytes.fromhex(yy_2))
-            ser.write(bytes.fromhex(speed_1))  # x-mid
-            ser.write(bytes.fromhex(speed_2))
+            #self.ser.write(b'\x45')
+            self.ser.write(bytes.fromhex(dis_1))  # x-mid
+            self.ser.write(bytes.fromhex(dis_2))
+            self.ser.write(bytes.fromhex(xx_1))  # x-mid
+            self.ser.write(bytes.fromhex(xx_2))
+            self.ser.write(bytes.fromhex(yy_1))  # x-mid
+            self.ser.write(bytes.fromhex(yy_2))
+            self.ser.write(bytes.fromhex(speed_1))  # x-mid
+            self.ser.write(bytes.fromhex(speed_2))
 
             # print(f"distance{bytes.fromhex(dis_1)}{bytes.fromhex(dis_2)}")
         except:
-            #ser.write(b'\x45')
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
-        ser.write(b'\x45')
+            #self.ser.write(b'\x45')
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
+        self.ser.write(b'\x45')
         try:
-            #ser.write(b'\x45')
-            ser.write(bytes.fromhex(dis_1))  # x-mid
-            ser.write(bytes.fromhex(dis_2))
-            ser.write(bytes.fromhex(x_1))  # x-mid
-            ser.write(bytes.fromhex(x_2))
-            ser.write(bytes.fromhex(y_1))  # x-mid
-            ser.write(bytes.fromhex(y_2))
-            ser.write(bytes.fromhex(speed_1))  # x-mid
-            ser.write(bytes.fromhex(speed_2))
+            #self.ser.write(b'\x45')
+            self.ser.write(bytes.fromhex(dis_1))  # x-mid
+            self.ser.write(bytes.fromhex(dis_2))
+            self.ser.write(bytes.fromhex(x_1))  # x-mid
+            self.ser.write(bytes.fromhex(x_2))
+            self.ser.write(bytes.fromhex(y_1))  # x-mid
+            self.ser.write(bytes.fromhex(y_2))
+            self.ser.write(bytes.fromhex(speed_1))  # x-mid
+            self.ser.write(bytes.fromhex(speed_2))
         except:
-            #ser.write(b'\x45')
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
-            ser.write(bytes.fromhex(zero11))  # x-mid
-            ser.write(bytes.fromhex(zero11))
+            #self.ser.write(b'\x45')
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
+            self.ser.write(bytes.fromhex(zero11))  # x-mid
+            self.ser.write(bytes.fromhex(zero11))
         side5 = time.time()
         print(f"side5\t{(side5 - side4) * 1000:.3f}")
         end = time.time()
         return image_raw, end - start
 
 
-    def destroy(self): # 无调用
+    def destroy(self):
         # Remove any context from the top of the context stack, deactivating it.
         self.ctx.pop()
 
-    def get_raw_image(self, image_path_batch): # 无调用
+    def get_raw_image(self, image_path_batch):
         """
         description: Read an image from image path
         """
@@ -538,164 +516,3 @@ class YoLov5TRT(object):
         result_scores = scores[indices].cpu()
         result_classid = classid[indices].cpu()
         return result_boxes, result_scores, result_classid
-
-
-class inferThread(threading.Thread):
-    def __init__(self, yolov5_wrapper):
-        threading.Thread.__init__(self)
-        self.yolov5_wrapper = yolov5_wrapper
-        #self.image_path_batch = image_path_batch
-    def infer(self, frame):
-
-        batch_image_raw, use_time = self.yolov5_wrapper.infer(frame)
-
-       # for i, img_path in enumerate(self.image_path_batch):
-      #      parent, filename = os.path.split(img_path)
-       #     save_name = os.path.join('output', filename)
-            # Save image
-          #  cv2.imwrite(save_name, batch_image_raw[i])
-      #  print('input->{}, time->{:.2f}ms, saving into output/'.format(self.image_path_batch, use_time * 1000))
-
-        return batch_image_raw, use_time
-
-
-class warmUpThread(threading.Thread):
-    def __init__(self, yolov5_wrapper):
-        threading.Thread.__init__(self)
-        self.yolov5_wrapper = yolov5_wrapper
-
-    def run(self):
-        batch_image_raw, use_time = self.yolov5_wrapper.infer(self.yolov5_wrapper.get_raw_image_zeros())
-        print('warm_up->{}, time->{:.2f}ms'.format(batch_image_raw[0].shape, use_time * 1000))
-
-
-if __name__ == "__main__":
-    # load custom plugins
-    ser = serial.Serial("/dev/ttyTHS0", 115200, timeout=0.0001)  # Linux系统使用com1口连接串行口
-    print(ser.bytesize)
-    print(ser.parity)
-    print(ser.stopbits)
-    DevList = mvsdk.CameraEnumerateDevice()
-    nDev = len(DevList)
-    if nDev < 1:
-        print("No camera was found!")
-        sys.exit()
-
-
-    for i, DevInfo in enumerate(DevList):
-        print("{}: {} {}".format(i, DevInfo.GetFriendlyName(), DevInfo.GetPortType()))
-    i = 0 if nDev == 1 else int(input("Select camera: "))
-    DevInfo = DevList[i]
-    print(DevInfo)
-
-    # 打开相机
-    hCamera = 0
-    try:
-        hCamera = mvsdk.CameraInit(DevInfo, -1, -1)
-    except mvsdk.CameraException as e:
-        print("CameraInit Failed({}): {}".format(e.error_code, e.message))
-
-
-    # 获取相机特性描述
-    cap = mvsdk.CameraGetCapability(hCamera)
-
-    # 判断是黑白相机还是彩色相机
-    monoCamera = (cap.sIspCapacity.bMonoSensor != 0)
-
-    # 黑白相机让ISP直接输出MONO数据，而不是扩展成R=G=B的24位灰度
-    if monoCamera:
-        mvsdk.CameraSetIspOutFormat(hCamera, mvsdk.CAMERA_MEDIA_TYPE_MONO8)
-    else:
-        mvsdk.CameraSetIspOutFormat(hCamera, mvsdk.CAMERA_MEDIA_TYPE_BGR8)
-
-    # 相机模式切换成连续采集
-    mvsdk.CameraSetTriggerMode(hCamera, 0)
-
-    # 手动曝光，曝光时间30ms
-    mvsdk.CameraSetAeState(hCamera, 0)
-    mvsdk.CameraSetExposureTime(hCamera, 30 * 1000)
-
-    # 让SDK内部取图线程开始工作
-    mvsdk.CameraPlay(hCamera)
-
-    # 计算RGB buffer所需的大小，这里直接按照相机的最大分辨率来分配
-    FrameBufferSize = cap.sResolutionRange.iWidthMax* cap.sResolutionRange.iHeightMax *3
-
-    # 分配RGB buffer，用来存放ISP输出的图像
-    # 备注：从相机传输到PC端的是RAW数据，在PC端通过软件ISP转为RGB数据（如果是黑白相机就不需要转换格式，但是ISP还有其它处理，所以也需要分配这个buffer）
-    pFrameBuffer = mvsdk.CameraAlignMalloc(FrameBufferSize, 16)
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--engine', nargs='+', type=str, default="/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/best.engine", help='.engine path(s)')
-    parser.add_argument('--save', type=int, default=0, help='save?')
-    opt = parser.parse_args()
-    PLUGIN_LIBRARY = "/home/pip/Desktop/yolov5+tensorrt/yolov5/builds/libmyplugins.so"
-    engine_file_path = opt.engine
-    print(f'enginepath:{engine_file_path}')
-    ctypes.CDLL(PLUGIN_LIBRARY)
-
-    # load coco labels
-    '''
-    categories=['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-            'fire hydrant', '', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep',
-            'cow', 'elephant', 'bear', 'zebra', 'giraffe', '', 'backpack', 'umbrella', '', '', 'handbag', 'tie',
-            'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
-            'skateboard', 'surfboard', 'tennis racket', 'bottle', '', 'wine glass', 'cup', 'fork', 'knife', 'spoon',
-            'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut',
-            'cake', 'chair', 'couch', 'potted plant', 'bed', '', 'dining table', '', '', 'toilet', '', 'tv',
-            'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink',
-            'refrigerator', '', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier',
-            'toothbrush']
-            '''
-
-    categories = ["armor1red", "armor3red", "armor4red", "armor5red", "armor1blue", "armor3blue", "armor4blue",
-                  "armor5blue", "armor1grey", "armor3grey", "armor4grey", "armor5grey"]
-
-    yolov5_wrapper = YoLov5TRT(engine_file_path)
-    #cap = cv2.VideoCapture(0)
-    datavount=0
-    try:
-        #thread1 = inferThread( )
-        #thread1.start()
-        #thread1.join()
-        while 1:
-            begin = time.time()
-            #global pre_time
-            pRawData, FrameHead = mvsdk.CameraGetImageBuffer(hCamera, 200)
-            mvsdk.CameraImageProcess(hCamera, pRawData, pFrameBuffer, FrameHead)
-            mvsdk.CameraReleaseImageBuffer(hCamera, pRawData)
-
-            # windows下取到的图像数据是上下颠倒的，以BMP格式存放。转换成opencv则需要上下翻转成正的
-            # linux下直接输出正的，不需要上下翻转
-
-            # 此时图片已经存储在pFrameBuffer中，对于彩色相机pFrameBuffer=RGB数据，黑白相机pFrameBuffer=8位灰度数据
-            # 把pFrameBuffer转换成opencv的图像格式以进行后续算法处理
-            frame_data = (mvsdk.c_ubyte * FrameHead.uBytes).from_address(pFrameBuffer)
-            frame = np.frombuffer(frame_data, dtype=np.uint8)
-            frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
-                                   1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
-
-
-            # cv2.Rodrigues()
-
-
-            frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
-            #_, frame = frame.read()
-            begin2 = time.time()
-
-            img, t = yolov5_wrapper.infer(frame)
-            end2=time.time()
-            end = time.time()
-
-            pre_time = (end - begin)
-            cv2.waitKey(1)
-            #print("mid")
-            cv2.imshow("result", img)
-
-
-            end=time.time()
-            
-	 
-            #print(f"time is{end*1000-begin*1000}ms\t\t{end2*1000-begin2*1000}ms")
-    except:
-        'g'
