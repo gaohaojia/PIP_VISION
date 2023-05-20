@@ -1,4 +1,0 @@
-Log file created at: 2023/03/24 22:52:10
-Running on machine: pip2-desktop
-Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
-W0324 22:52:10.597097 14568 MVCameraBase.cpp:98] Device:(name:MV-SUA134GC#0 sn:041130220339)Lost
