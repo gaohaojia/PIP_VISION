@@ -11,10 +11,12 @@ import torchvision
 
 CONF_THRESH = 0.5
 IOU_THRESHOLD = 0.1
-check_fr=0
-fr=[]
-pre_x=0
-pre_y=0
+
+check_fr = 0
+fr = []
+
+pre_x = 0
+pre_y = 0
 
 def plot_one_box(x, img, color=None, label=None, line_thickness=None):
     """
@@ -57,10 +59,10 @@ class YoLov5TRT(object):
     """
 
     def __init__(self, engine_file_path, ser, categories):
-        
+
         self.ser = ser
         self.categories = categories
-        
+
         # Create a Context on this device,
         self.ctx = cuda.Device(0).make_context()
         stream = cuda.Stream()
@@ -69,9 +71,7 @@ class YoLov5TRT(object):
 
         # Deserialize the engine from file
         with open(engine_file_path, "rb") as f:
-            print(f" f is {f}")
             engine = runtime.deserialize_cuda_engine(f.read())
-            print(f'kewua{engine}')
         context = engine.create_execution_context()
 
         host_inputs = []
@@ -110,18 +110,19 @@ class YoLov5TRT(object):
         self.bindings = bindings
         self.batch_size = engine.max_batch_size
 
-    def traned(self,data0):
-        b16s=(4 - len(hex(data0)[2:])) * '0' + hex(data0)[2:]
-        #print(f'4545454545454545{b16s}')
-        return [b16s[:2],b16s[2:]]
-    
-    def protectfr(self,all,friends):
-        new=[]
+    def traned(self, data0):
+        b16s = (4 - len(hex(data0)[2:])) * '0' + hex(data0)[2:]
+        # print(f'4545454545454545{b16s}')
+        return [b16s[:2], b16s[2:]]
+
+    # 保护友军的函数,返回不再友军列表的id
+    def protectfr(self, all, friends):
+        new = []
         for i in all.numpy().tolist():
             if i not in (friends):
                 new.append(i)
         return torch.tensor(new)
-    
+
     def infer(self, input_image_path, pre_time):
         start = time.time()
         threading.Thread.__init__(self)
@@ -142,9 +143,7 @@ class YoLov5TRT(object):
         batch_origin_h = []
         batch_origin_w = []
         batch_input_image = np.empty(shape=[self.batch_size, 3, self.input_h, self.input_w])
-
         input_image, image_raw, origin_h, origin_w = self.preprocess_image(input_image_path)
-
         batch_origin_h.append(origin_h)
         batch_origin_w.append(origin_w)
         np.copyto(batch_input_image, input_image)
@@ -161,73 +160,99 @@ class YoLov5TRT(object):
         cuda.memcpy_dtoh_async(host_outputs[0], cuda_outputs[0], stream)
         # Synchronize the stream
         stream.synchronize()
-        #end = time.time()
+        # end = time.time()
         # Remove any context from the top of the context stack, deactivating it.
         self.ctx.pop()
         # Here we use the first row of output in that batch_size = 1
         output = host_outputs[0]
         # Do postprocess
-        side1=time.time()
-        print(f"side1\t{(side1-start)*1000:.3f}")
+        side1 = time.time()
+        # 获取当前识别到的box
         result_boxes, result_scores, result_classid = self.post_process(
             output, origin_h, origin_w)
 
-        #print(f"retboxes{result_boxes}")
+        print(f"retboxes{result_boxes}")
+        print(f"retscore{result_scores}")
+        print(f"retid{result_classid}")
         # Draw rectangles and labels on the original image
         try:
             self.ser.write(b'\x45')
         except:
-            print("wrong open")#print(boxes[mindex])
+            print("wrong open")  # print(boxes[mindex])
 
-
-        # self.ser.write(b'\x64')
-        # self.ser.write(hex(206).encode('utf-8'))
+        # er.write(b'\x64')
+        # ser.write(hex(206).encode('utf-8'))
 
         color = 0
-        friends=[]
+        friends = []
         print(f'my recieve{self.ser.read()}')
+        # 根据我方式红蓝方的设定，进行友军识别
         if self.ser.read() == b'\xff':
-            color = 1  #blue
-            friends=[0,1,2,3]
+            color = 1  # blue
+            friends = [0, 1, 2, 3]
 
-        elif self.ser.read() == b'\x00':
-            color = 2   #red
-            friends=[4,5,6,7]
+        elif self.ser.read() == b'\xaa':
+            color = 2  # red
+            friends = [4, 5, 6, 7]
         print(f"fr\t{friends}")
-        global  check_fr,fr
-        if check_fr==0 and len(friends)!=0:
-            fr=friends
-            check_fr=1
-        friends_list=fr+[8,9,10,11]
+        # 函数/类内调用全局变量
+        global check_fr, fr
+        # 如果是友军而且友军列表成功添加，那么友军标记边变1，并且友军列表添加死亡的敌人
+        if check_fr == 0 and len(friends) != 0:
+            fr = friends
+            check_fr = 1
+        friends_list = fr + [8, 9, 10, 11]
 
-
-        print(f"frdlist{friends_list}")
+        # 分别代表友军的box、box置信度、box的id
         exit_friends_boxes = []
         exit_friends_scores = []
         exit_friends_id = []
+        friends_id = []
         for ii in range(len(result_classid)):
             if int(result_classid.numpy()[ii]) in friends_list:
+                friends_id.append(int(result_classid.numpy()[ii]))
                 exit_friends_boxes.append(result_boxes[ii])
                 exit_friends_scores.append(result_scores[ii])
                 exit_friends_id.append(result_classid[ii])
-        result_boxes = self.protectfr(result_boxes, exit_friends_boxes)
+        print(f"id{friends_id}")
+        enemy_list_index = []
+        print(f"idnumpy{result_classid.numpy()}")
+        # 获取敌军的列表以及id
+        try:
+            for i in result_classid.numpy():
+                print(i)
+                if int(i) not in friends_id:
+                    dex_tem = ((np.where(result_classid.numpy() == i))[0][0])
+                    enemy_list_index.append(dex_tem)
+        except:
+            "g"
+        ourbox = []
+        ourclassid = []
+        ourscore = []
+        print(f"idene{enemy_list_index}")
+        for dex in enemy_list_index:
+            ourbox.append(result_boxes[dex].numpy())
+
+        result_boxes = ourbox
+
+        # result_boxes = self.protectfr(result_boxes, exit_friends_boxes)
+        # 置信度处理
         result_scores = self.protectfr(result_scores, exit_friends_scores)
+        # id处理
         result_classid = self.protectfr(result_classid, exit_friends_id)
-
+        # 从而获取到处理完毕的友方敌方box
+        print(f"nowboxes{result_boxes}")
+        print(f"nowscore{result_scores}")
+        print(f"nowid{result_classid}")
+        # 计算处理时间
         side2 = time.time()
-        print(f"side2\t{(side2 - side1) * 1000:.3f}")
-        #print(f"resultbox{result_boxes}")
-        #print(f"resultscore{result_scores}")
-
-        #print(f"resultclass{result_classid}")
+        print("check0")
         boxes = np.array(result_boxes)
-        # print(f'boxes={boxes}')
-        # print(boxes)
         inde = boxes.shape[0]
-
-        # print(f"shape={boxes.shape[0]}")
         numlist = []
-        # readata=self.ser.read
+
+        # readata=ser.read
+        # 计算谁离中心近
         for isb in range(inde):
             numlist.append(
                 float(((boxes[isb][0] + boxes[isb][2]) / 2 - 320) ** 2 + ((boxes[isb][1] + boxes[isb][3]) - 240) ** 2))
@@ -236,28 +261,25 @@ class YoLov5TRT(object):
         # print
         # if len(numlist)!=0:
         mindex = -1
-
+        print("check2")
         if len(numlist) == 0:
             mindex = -1
         else:
             mindex = np.argmin(numlist)
-            #print(f"xxyy\t\t\t\t{int(boxes[mindex][0])}{int(boxes[mindex][1])}")
+            # print(f"xxyy\t\t\t\t{int(boxes[mindex][0])}{int(boxes[mindex][1])}")
 
         try:
-            #self.ser.write(b'\x45')
+            # ser.write(b'\x45')
             global pre_x, pre_y
             x_now = int((boxes[mindex][0] + boxes[mindex][2]) / 2)
             y_now = int((boxes[mindex][1] + boxes[mindex][3]) / 2)
             x_1, x_2 = self.traned((x_now))
             y_1, y_2 = self.traned((y_now))
-            detax = x_now-pre_x
-            detay = y_now-pre_y
-
-            xx_1,xx_2=self.traned((int(pre_x + detax / 2)))
+            detax = x_now - pre_x
+            detay = y_now - pre_y
+            xx_1, xx_2 = self.traned((int(pre_x + detax / 2)))
             yy_1, yy_2 = self.traned((int(pre_y + detay / 2)))
-            print("fgh")
             print(x_1, x_2, xx_1, xx_2)
-
             deta_dis = np.sqrt((detay ** 2 + detax ** 2))
             speed_1, speed_2 = self.traned(int(500 * pre_time))
             pre_x = x_now
@@ -268,11 +290,11 @@ class YoLov5TRT(object):
             print("wrong traning")
         side3 = time.time()
         print(f"side3\t{(side3 - side2) * 1000:.3f}")
-        #print(numlist)
+        # print(numlist)
         tag_size = 0.05
         tag_size_half = 0.02
-        half_Weight = [229/4,152/4]
-        half_Height = [126/4,142/4]
+        half_Weight = [229 / 4, 152 / 4]
+        half_Height = [126 / 4, 142 / 4]
 
         fx = 1056.4967111
         fy = 1056.6221413136
@@ -281,31 +303,30 @@ class YoLov5TRT(object):
         xxx = -0.392652606
         K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # neican
 
-
-
         '''objPoints = np.array([[0, 0, 0],
                               [0, 52, 0],
                               [218, 0, 0],
                               [218, 52, 0]], dtype=np.float64)  # worldpoint'''
-            #imgPoints = np.array([[608, 167], [514, 167], [518, 69], [611, 71]], dtype=np.float64)  # camerapoint
+        # imgPoints = np.array([[608, 167], [514, 167], [518, 69], [611, 71]], dtype=np.float64)  # camerapoint
         cameraMatrix = K
         distCoeffs = None
         side4 = time.time()
         print(f"side4\t{(side4 - side3) * 1000:.3f}")
-            #  print(box)
-        if mindex != -1 :
+        #  print(box)
+        if mindex != -1:
             box = result_boxes[mindex]
-            print(f"boxxx{box}")
-            imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]], dtype=np.float64)
-                #label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
-            if mindex%4==0:
-                idn=0
+
+            imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
+                                 dtype=np.float64)
+            # label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
+            if mindex % 4 == 0:
+                idn = 0
             else:
-                idn=1
+                idn = 1
             objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
-                                      [half_Weight[idn], -half_Height[idn], 0],
-                                      [half_Weight[idn], half_Height[idn], 0],
-                                      [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
+                                  [half_Weight[idn], -half_Height[idn], 0],
+                                  [half_Weight[idn], half_Height[idn], 0],
+                                  [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
             retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
             # print(f'hahaha{retval}{rvec}{tvec}')
             rotM = cv2.Rodrigues(rvec)[0]
@@ -313,55 +334,56 @@ class YoLov5TRT(object):
             distance = np.linalg.norm(tvec)
 
             try:
-                plot_one_box(box,image_raw,label="{}:{:.2f}".format(self.categories[int(result_classid[mindex])], result_scores[mindex]),)
+                plot_one_box(box, image_raw,
+                             label="{}:{:.2f}".format(self.categories[int(result_classid[mindex])], result_scores[mindex]), )
             except:
-                    '''666'''
-            #print(categories)
-                #label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
-                #print(f"label={label}")
-                #self.ser.write((label.encode("gbk")))
-                #self.ser.write((distance.encode("gbk")))
+                '''g'''
+            # print(categories)
+            # label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
+            # print(f"label={label}")
+            # ser.write((label.encode("gbk")))
+            # ser.write((distance.encode("gbk")))
             rvec_matrix = cv2.Rodrigues(rvec)[0]
             proj_matrix = np.hstack((rvec_matrix, rvec))
             eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
-            pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])),str(int(eulerAngles[2]))
-            distance=str(int(distance/10))
-                #label=str(label)
+            pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
+            distance = str(int(distance / 10))
+            # label=str(label)
             print(f'pryd{pitch},{yaw},{roll},{distance}')
-                #self.ser.write((label.encode("UTF-8")))
-                #self.ser.write('\t'.encode('gbk'))
+            # ser.write((label.encode("UTF-8")))
+            # ser.write('\t'.encode('gbk'))
             # dist_1, dist_2 = traned(int(distance))
             dis_1, dis_2 = self.traned((int(distance)))
-        zero11,zero2=self.traned(0)
-            # e = bin(int(240-boxes[mindex][1]) )
+        zero11, zero2 = self.traned(0)
+        # e = bin(int(240-boxes[mindex][1]) )
 
-                #pi_1, pi_2 = self.traned((int(pitch)+180))
+        # pi_1, pi_2 = self.traned((int(pitch)+180))
 
-        try:
-            #self.ser.write(b'\x45')
-            self.ser.write(bytes.fromhex(dis_1))  # x-mid
-            self.ser.write(bytes.fromhex(dis_2))
-            self.ser.write(bytes.fromhex(xx_1))  # x-mid
-            self.ser.write(bytes.fromhex(xx_2))
-            self.ser.write(bytes.fromhex(yy_1))  # x-mid
-            self.ser.write(bytes.fromhex(yy_2))
-            self.ser.write(bytes.fromhex(speed_1))  # x-mid
-            self.ser.write(bytes.fromhex(speed_2))
-
-            # print(f"distance{bytes.fromhex(dis_1)}{bytes.fromhex(dis_2)}")
-        except:
-            #self.ser.write(b'\x45')
-            self.ser.write(bytes.fromhex(zero11))  # x-mid
-            self.ser.write(bytes.fromhex(zero11))
-            self.ser.write(bytes.fromhex(zero11))  # x-mid
-            self.ser.write(bytes.fromhex(zero11))
-            self.ser.write(bytes.fromhex(zero11))  # x-mid
-            self.ser.write(bytes.fromhex(zero11))
-            self.ser.write(bytes.fromhex(zero11))  # x-mid
-            self.ser.write(bytes.fromhex(zero11))
+        # try:
+        #     #ser.write(b'\x45')
+        #     ser.write(bytes.fromhex(dis_1))  # x-mid
+        #     ser.write(bytes.fromhex(dis_2))
+        #     ser.write(bytes.fromhex(xx_1))  # x-mid
+        #     ser.write(bytes.fromhex(xx_2))
+        #     ser.write(bytes.fromhex(yy_1))  # x-mid
+        #     ser.write(bytes.fromhex(yy_2))
+        #     ser.write(bytes.fromhex(speed_1))  # x-mid
+        #     ser.write(bytes.fromhex(speed_2))
+        #
+        #     # print(f"distance{bytes.fromhex(dis_1)}{bytes.fromhex(dis_2)}")
+        # except:
+        #     #ser.write(b'\x45')
+        #     ser.write(bytes.fromhex(zero11))  # x-mid
+        #     ser.write(bytes.fromhex(zero11))
+        #     ser.write(bytes.fromhex(zero11))  # x-mid
+        #     ser.write(bytes.fromhex(zero11))
+        #     ser.write(bytes.fromhex(zero11))  # x-mid
+        #     ser.write(bytes.fromhex(zero11))
+        #     ser.write(bytes.fromhex(zero11))  # x-mid
+        #     ser.write(bytes.fromhex(zero11))
         self.ser.write(b'\x45')
         try:
-            #self.ser.write(b'\x45')
+            # ser.write(b'\x45')
             self.ser.write(bytes.fromhex(dis_1))  # x-mid
             self.ser.write(bytes.fromhex(dis_2))
             self.ser.write(bytes.fromhex(x_1))  # x-mid
@@ -371,7 +393,7 @@ class YoLov5TRT(object):
             self.ser.write(bytes.fromhex(speed_1))  # x-mid
             self.ser.write(bytes.fromhex(speed_2))
         except:
-            #self.ser.write(b'\x45')
+            # ser.write(b'\x45')
             self.ser.write(bytes.fromhex(zero11))  # x-mid
             self.ser.write(bytes.fromhex(zero11))
             self.ser.write(bytes.fromhex(zero11))  # x-mid
@@ -384,7 +406,6 @@ class YoLov5TRT(object):
         print(f"side5\t{(side5 - side4) * 1000:.3f}")
         end = time.time()
         return image_raw, end - start
-
 
     def destroy(self):
         # Remove any context from the top of the context stack, deactivating it.
