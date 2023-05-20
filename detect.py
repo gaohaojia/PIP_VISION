@@ -19,7 +19,7 @@ import torchvision
 import argparse
 import cv2
 import numpy
-import mvsdk.mvsdk
+from sdk import mvsdk
 import platform
 import serial
 CONF_THRESH = 0.5
