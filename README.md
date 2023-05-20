@@ -9,7 +9,7 @@ PIP战队视觉组源码仓库。
 ## 其他
 - 想看学习报告和踩坑日志的可以从右上角切换到相应的分支（Branch）。
 
-![示例图片](https://github.com/gaohaojia/PIP_YOLOv5_detect/blob/images/%E7%A4%BA%E4%BE%8B%E5%9B%BE%E7%89%87.png)
+![示例图片](https://github.com/gaohaojia/PIP_VISION/blob/images/%E7%A4%BA%E4%BE%8B%E5%9B%BE%E7%89%87.png)
 ## 一起为国一奋斗！！！
 ## 版本修改
 ### 1.1.0
