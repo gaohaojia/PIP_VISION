@@ -1,5 +1,5 @@
 import sys
-import mvsdk
+from cam_conf import mvsdk
 
 def get_buffer():
     DevList = mvsdk.CameraEnumerateDevice()

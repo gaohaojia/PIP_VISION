@@ -4,6 +4,7 @@ import time
 import cv2
 import numpy as np
 import pycuda.driver as cuda
+import pycuda.autoinit
 import tensorrt as trt
 import torch
 import torchvision

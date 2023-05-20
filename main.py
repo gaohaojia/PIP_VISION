@@ -5,8 +5,8 @@ import numpy as np
 import argparse
 import serial
 
-from camera import init_camera
-from camera import mvsdk
+from cam_conf import init_camera
+from cam_conf import mvsdk
 from yolov5TRT import YoLov5TRT
 
 pre_time = 0.1
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     categories = ["armor1red", "armor3red", "armor4red", "armor5red", "armor1blue", "armor3blue", "armor4blue",
                   "armor5blue", "armor1grey", "armor3grey", "armor4grey", "armor5grey"]
 
-    hCamera, pFrameBuffer = init_camera()
+    hCamera, pFrameBuffer = init_camera.get_buffer()
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)
     yolov5_wrapper = YoLov5TRT(engine_file_path, ser, categories)
     datavount=0
