@@ -17,3 +17,4 @@ PIP战队视觉组源码仓库。
 - 将detect.py文件拆分，拆为main.py、init_camera.py、yolov5TRT.py。将init_camera放入cam_conf文件夹下。
 - 修改pyd.sh文件，使其可以自动获取文件目录。
 - 现在可以自动获取engine目录。
+- 新增requirements.txt文件，安装环境时可直接使用。
