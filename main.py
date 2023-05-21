@@ -220,6 +220,7 @@ class check_friends():
         print(f"fr\t{self.friends}")
         # 函数/类内调用全局变量
         # 如果是友军而且友军列表成功添加，那么友军标记边变1，并且友军列表添加死亡的敌人
+        fr = []
         if self.check_fr == 0 and len(self.friends) != 0:
             fr = self.friends
             self.check_fr = 1
