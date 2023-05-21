@@ -337,7 +337,7 @@ if __name__ == "__main__":
 
             result_boxes, result_scores, result_classid, image_raw = yolov5_wrapper.infer(frame)
             result_boxes, result_scores, result_classid = check_friend_wrapper.get_enemy_info(result_boxes, result_scores, result_classid)
-            trans_detect_data(result_boxes, result_scores, result_classid, image_raw)
+            trans_detect_data(ser, result_boxes, result_scores, result_classid, image_raw)
 
             end2 = time.time()
             end = time.time()
