@@ -343,7 +343,7 @@ if __name__ == "__main__":
             pre_time = (end - begin)
 
             cv2.waitKey(1)
-            cv2.imshow("result", img)
+            cv2.imshow("result", image_raw)
             print(f"frame time: {(end - begin) * 1000}ms\t\tYOLO time: {(end2 - begin2) * 1000}ms")
     except:
         print("ERROR!")
