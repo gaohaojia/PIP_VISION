@@ -346,5 +346,5 @@ if __name__ == "__main__":
             cv2.waitKey(1)
             cv2.imshow("result", image_raw)
             print(f"frame time: {(end - begin) * 1000}ms\t\tYOLO time: {(end2 - begin2) * 1000}ms")
-    except:
-        print("ERROR!")
+    except Exception as e:
+        print("ERROR! Run while ERROR!\n" + e)
