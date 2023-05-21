@@ -23,10 +23,10 @@ def get_ser(port, baudrate, timeout):
     """
     description: Linux系统使用com1口连接串行口，在代码125行左右用于获得串行口传入tensorRT
     """
-    ser = serial.Serial(port, baudrate, timeout=timeout)
-    print(ser.bytesize)
-    print(ser.parity)
-    print(ser.stopbits)
+    ser = serial.Serial(port, baudrate, timeout)
+    print(f"Serial Bytesize: {ser.bytesize}")
+    print(f"Serial Parity:   {ser.parity}")
+    print(f"Serial Stopbits: {ser.stopbits}")
     return ser
 
 def get_transdata_from_10b(transdata):
@@ -51,7 +51,6 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
     """
     # 计算处理时间
     side2 = time.time()
-    print("check0")
     boxes = np.array(result_boxes)
     inde = boxes.shape[0]
     numlist = []
@@ -62,7 +61,6 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
         numlist.append(
             float(((boxes[isb][0] + boxes[isb][2]) / 2 - 320) ** 2 + ((boxes[isb][1] + boxes[isb][3]) - 240) ** 2))
     mindex = -1
-    print("check2")
     if len(numlist) == 0:
         mindex = -1
     else:
@@ -84,11 +82,10 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
         pre_x = x_now
         pre_y = y_now
     except:
-        print("wrong trans")
+        print("Wrong Trans!")
 
     side3 = time.time()
-    print(f"side3\t{(side3 - side2) * 1000:.3f}")
-    # print(numlist)
+    print(f"Side3 Time: \t{(side3 - side2) * 1000:.3f}")
     tag_size = 0.05
     tag_size_half = 0.02
     half_Weight = [229 / 4, 152 / 4]
@@ -101,16 +98,10 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
     xxx = -0.392652606
     K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # neican
 
-    '''objPoints = np.array([[0, 0, 0],
-                          [0, 52, 0],
-                          [218, 0, 0],
-                          [218, 52, 0]], dtype=np.float64)  # worldpoint'''
-    # imgPoints = np.array([[608, 167], [514, 167], [518, 69], [611,71]], dtype=np.float64)  # camerapoint
     cameraMatrix = K
     distCoeffs = None
     side4 = time.time()
-    print(f"side4\t{(side4 - side3) * 1000:.3f}")
-    #  print(box)
+    print(f"Side4 Time: \t{(side4 - side3) * 1000:.3f}")
     if mindex != -1:
         box = result_boxes[mindex]
 
@@ -126,9 +117,7 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
                               [half_Weight[idn], half_Height[idn], 0],
                               [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
         retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
-        # print(f'hahaha{retval}{rvec}{tvec}')
-        rotM = cv2.Rodrigues(rvec)[0]
-        # position = -np.matrix(rotM).T * np.matrix(tvec)
+
         distance = np.linalg.norm(tvec)
 
         try:
@@ -171,7 +160,7 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
         ser.write(bytes.fromhex(zero11))  # x-mid
         ser.write(bytes.fromhex(zero11))
     side5 = time.time()
-    print(f"side5\t{(side5 - side4) * 1000:.3f}")
+    print(f"Side5 Time: \t{(side5 - side4) * 1000:.3f}")
     end = time.time()
 
 class check_friends():
@@ -203,22 +192,22 @@ class check_friends():
         try:
             ser.write(b'\x45')
         except:
-            print("wrong open")
-
+            print("Wrong Open Serial!")
         
         # TODO:还需要添加风车的编号，已经打过的风车和灰色风车都标记为友军
         # TODO:目前的想法：1.红蓝色已击打看作一个标签进行训练识别   2.红蓝色已击打分为两类训练识别
-        print(f'my recieve{ser.read()}')
+
+        print(f'Recieve: {ser.read()}')
         # 根据我方式红蓝方的设定，进行友军识别
         if ser.read() == b'\xff':
             self.color = 1  # blue
             self.friends = [0, 1, 2, 3]
-
         elif ser.read() == b'\xaa':
             self.color = 2  # red
             self.friends = [4, 5, 6, 7]
-        print(f"fr\t{self.friends}")
-        # 函数/类内调用全局变量
+        if self.friends:
+            print(f"Friend id: {self.friends}")
+
         # 如果是友军而且友军列表成功添加，那么友军标记边变1，并且友军列表添加死亡的敌人
         fr = []
         if self.check_fr == 0 and len(self.friends) != 0:
@@ -262,37 +251,34 @@ class check_friends():
                 exit_friends_boxes.append(result_boxes[ii])
                 exit_friends_scores.append(result_scores[ii])
                 exit_friends_id.append(result_classid[ii])
-        print(f"id{friends_id}")
+        if friends_id:
+            print(f"Friend Id: {friends_id}")
         enemy_list_index = []
-        print(f"idnumpy{result_classid.numpy()}")
+
         # 获取敌军的列表以及id
         try:
             for i in result_classid.numpy():
-                print(i)
                 if int(i) not in friends_id:
                     dex_tem = ((np.where(result_classid.numpy() == i))[0][0])
                     enemy_list_index.append(dex_tem)
         except:
             "g"
         ourbox = []
-        # TODO 以下两个变量没有用到
-        ourclassid = []
-        ourscore = []
-        print(f"idene{enemy_list_index}")
+        if enemy_list_index:
+            print(f"Enemy Id: {enemy_list_index}")
         for dex in enemy_list_index:
             ourbox.append(result_boxes[dex].numpy())
 
         result_boxes = ourbox
 
-        # result_boxes = self.get_nonfriend_from_all(result_boxes, exit_friends_boxes)
         # 置信度处理
         result_scores = self.get_nonfriend_from_all(result_scores, exit_friends_scores)
         # id处理
         result_classid = self.get_nonfriend_from_all(result_classid, exit_friends_id)
         # 从而获取到处理完毕的友方敌方box
-        print(f"nowboxes{result_boxes}")
-        print(f"nowscore{result_scores}")
-        print(f"nowid{result_classid}")
+        print(f"Nowboxes: {result_boxes}")
+        print(f"Nowscore: {result_scores}")
+        print(f"Nowid: {result_classid}")
         return result_boxes, result_scores, result_classid
 
 if __name__ == "__main__":
@@ -304,7 +290,7 @@ if __name__ == "__main__":
     opt = parser.parse_args()
     PLUGIN_LIBRARY = opt.library
     engine_file_path = opt.engine
-    print(f'enginepath:{engine_file_path}')
+    print(f'Enginepath: {engine_file_path}')
     ctypes.CDLL(PLUGIN_LIBRARY)
 
     hCamera, pFrameBuffer = init_camera.get_buffer()
@@ -345,6 +331,6 @@ if __name__ == "__main__":
 
             cv2.waitKey(1)
             cv2.imshow("result", image_raw)
-            print(f"frame time: {(end - begin) * 1000}ms\t\tYOLO time: {(end2 - begin2) * 1000}ms")
+            print(f"Frame Time: {(end - begin) * 1000}ms\t\tYOLO Time: {(end2 - begin2) * 1000}ms")
     except Exception as e:
         print("ERROR! Run while ERROR!\n" + e)
