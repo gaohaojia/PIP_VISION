@@ -4,12 +4,14 @@ import cv2
 import numpy as np
 import argparse
 import serial
+import os
 
 from cam_conf import init_camera
 from cam_conf import mvsdk
 from yolov5TRT import YoLov5TRT
 
-pre_time = 0.1
+pre_time = 0.1 # 每帧所需时间
+run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
 
 def get_ser(port, baudrate, timeout):
     """
@@ -24,10 +26,11 @@ def get_ser(port, baudrate, timeout):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--engine', nargs='+', type=str, default="/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/best.engine", help='.engine path(s)')
+    parser.add_argument('--engine', nargs='+', type=str, default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s)')
+    parser.add_argument('--library', nargs='+', type=str, default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s)')
     parser.add_argument('--save', type=int, default=0, help='save?')
     opt = parser.parse_args()
-    PLUGIN_LIBRARY = "/home/pip/Desktop/yolov5+tensorrt/yolov5/builds/libmyplugins.so"
+    PLUGIN_LIBRARY = opt.library
     engine_file_path = opt.engine
     print(f'enginepath:{engine_file_path}')
     ctypes.CDLL(PLUGIN_LIBRARY)
