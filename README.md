@@ -10,9 +10,6 @@ PIP战队视觉组源码仓库。
 - 想看学习报告和踩坑日志的可以从右上角切换到相应的分支（Branch）。
 
 ![示例图片](https://github.com/gaohaojia/PIP_VISION/blob/images/%E7%A4%BA%E4%BE%8B%E5%9B%BE%E7%89%87.png)
-<<<<<<< HEAD
-## 一起为国一奋斗！！！
-=======
 ## 一起为国一奋斗！！！
 ## 版本修改
 ### 1.1.0
@@ -21,4 +18,3 @@ PIP战队视觉组源码仓库。
 - 修改pyd.sh文件，使其可以自动获取文件目录。
 - 现在可以自动获取engine目录。
 - 新增requirements.txt文件，安装环境时可直接使用。
->>>>>>> dev
