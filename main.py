@@ -312,7 +312,7 @@ if __name__ == "__main__":
                         default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='+', type=str, 
                         default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
-    parser.add_argument('--color', nargs='+', type=int, default=0, help='Friend\'s color, 1 is blue, 2 is red.')
+    parser.add_argument('--color', nargs='+', type=int, default=1, help='Friend\'s color, 1 is blue, 2 is red.')
     parser.add_argument('--mode', nargs='+', type=str, default="debug", help='Running mode. debug (default) or release.')
     opt = parser.parse_args()
     run_mode = 1 if opt.mode == "debug" else 0
