@@ -11,6 +11,14 @@ from cam_conf import init_camera
 from cam_conf import mvsdk
 import yolov5TRT
 
+# 键盘打断自启功能，若安装了keyboard包则启动该功能
+can_interrupted = False
+try:
+    import keyboard
+    can_interrupted = True
+except:
+    pass
+
 pre_time = 0.1 # 每帧所需时间
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
 run_mode = 1 
@@ -43,7 +51,7 @@ def get_ser(port, baudrate, timeout):
     return:
         串口信息。
     """
-    ser = serial.Serial(port, baudrate, timeout)
+    ser = serial.Serial(port, baudrate, timeout=timeout)
     if run_mode:
         print(f"Serial Bytesize: {ser.bytesize}")
         print(f"Serial Parity:   {ser.parity}")
@@ -146,7 +154,7 @@ def trans_detect_data(ser, result_boxes, image_raw):
 
         try:
             yolov5TRT.plot_one_box(box, image_raw,
-                         label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], result_boxes.scroes[mindex]), )
+                         label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], result_boxes.scores[mindex]), )
         except:
             '''g'''
 
@@ -222,10 +230,10 @@ class check_friends():
         if run_mode:
             print(f"Recieve: {ser.read()}")
         # 根据我方红蓝方的设定，进行友军识别
-        if ser.read() == b'\xff':
+        if ser.read() == b'\xff' or self.color == 1:
             self.color = 1  # blue
             self.friends = [0, 1, 2, 3]
-        elif ser.read() == b'\xaa':
+        elif ser.read() == b'\xaa' or self.color == 2:
             self.color = 2  # red
             self.friends = [4, 5, 6, 7]
         if run_mode:
@@ -270,7 +278,7 @@ class check_friends():
             if int(result_boxes.classid.numpy()[ii]) in self.friends_list:
                 friends_id.append(int(result_boxes.classid.numpy()[ii]))
                 exit_friends_boxes.append(result_boxes.boxes[ii])
-                exit_friends_scores.append(result_boxes.scroes[ii])
+                exit_friends_scores.append(result_boxes.scores[ii])
                 exit_friends_id.append(result_boxes.classid[ii])
         if run_mode:
             print(f"Friend Id: {friends_id}") if friends_id else print("No friend id!")
@@ -293,12 +301,12 @@ class check_friends():
             ourbox.append(result_boxes.boxes[dex].numpy())
 
         result_boxes.boxes = ourbox
-        result_boxes.scroes = self.get_nonfriend_from_all(result_boxes.scroes, exit_friends_scores)  # 置信度处理
+        result_boxes.scores = self.get_nonfriend_from_all(result_boxes.scores, exit_friends_scores)  # 置信度处理
         result_boxes.classid = self.get_nonfriend_from_all(result_boxes.classid, exit_friends_id)    # id处理
 
         if run_mode:
             print(f"Nowboxes: {result_boxes.boxes}")
-            print(f"Nowscore: {result_boxes.scroes}")
+            print(f"Nowscore: {result_boxes.scores}")
             print(f"Nowid: {result_boxes.classid}")
         return result_boxes
 
@@ -333,6 +341,10 @@ if __name__ == "__main__":
         try:
             begin = time.time() # 每帧总计时开始
 
+            if can_interrupted:
+                if keyboard.is_pressed('esc'):
+                    break
+
             # 获取相机图像
             """
             windows下取到的图像数据是上下颠倒的，以BMP格式存放。转换成opencv则需要上下翻转成正的
@@ -366,5 +378,5 @@ if __name__ == "__main__":
                 print(f"Frame Time: {pre_time * 1000}ms")   # 输出用时
 
         except Exception as e:
-            print("ERROR! Run while ERROR!\n\r" + e)
+            print(e)
 
