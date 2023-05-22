@@ -19,9 +19,23 @@ categories = ["armor1red", "armor3red", "armor4red", "armor5red",
               "armor1blue", "armor3blue", "armor4blue",
               "armor5blue", "armor1grey", "armor3grey", "armor4grey", "armor5grey"]
 
+class boxes():
+    """
+    description: 用于存储boxes各种信息的类。
+    """
+    def __init__(self, boxes, scores, classid):
+        self.boxes = boxes       # boxes位置信息
+        self.scores = scores     # boxes的置信度
+        self.classid = classid   # boxes的id
+
 def get_ser(port, baudrate, timeout):
     """
-    description: Linux系统使用com1口连接串行口，在代码125行左右用于获得串行口传入tensorRT
+    description: Linux系统使用com1口连接串行口。
+    param:
+        baudrate:  端口。
+        timeout:   超时时间。
+    return:
+        串口信息。
     """
     ser = serial.Serial(port, baudrate, timeout)
     print(f"Serial Bytesize: {ser.bytesize}")
@@ -40,26 +54,24 @@ def get_transdata_from_10b(transdata):
     b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
     return [b16s[:2], b16s[2:]]
 
-def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_raw):
+def trans_detect_data(ser, result_boxes, image_raw):
     """
     description: 将detect的信息与电控通讯。
     param:
         ser:             串口信息。
-        result_boxes:    识别的boxes。
-        result_scores:   boxes的置信度。
-        result_classid:  boxes的id。
+        result_boxes:    boxes类。
+        image_raw:       标注后的图片。
     """
     # 计算处理时间
     side2 = time.time()
-    boxes = np.array(result_boxes)
-    inde = boxes.shape[0]
+    boxes_np = np.array(result_boxes.boxes)
+    inde = boxes_np.shape[0]
     numlist = []
 
-    # readata=ser.read
     # 计算谁离中心近
     for isb in range(inde):
         numlist.append(
-            float(((boxes[isb][0] + boxes[isb][2]) / 2 - 320) ** 2 + ((boxes[isb][1] + boxes[isb][3]) - 240) ** 2))
+            float(((boxes_np[isb][0] + boxes_np[isb][2]) / 2 - 320) ** 2 + ((boxes_np[isb][1] + boxes_np[isb][3]) - 240) ** 2))
     mindex = -1
     if len(numlist) == 0:
         mindex = -1
@@ -68,8 +80,8 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
 
     try:
         global pre_x, pre_y
-        x_now = int((boxes[mindex][0] + boxes[mindex][2]) / 2)
-        y_now = int((boxes[mindex][1] + boxes[mindex][3]) / 2)
+        x_now = int((boxes_np[mindex][0] + boxes_np[mindex][2]) / 2)
+        y_now = int((boxes_np[mindex][1] + boxes_np[mindex][3]) / 2)
         x_1, x_2 = get_transdata_from_10b((x_now))
         y_1, y_2 = get_transdata_from_10b((y_now))
         detax = x_now - pre_x
@@ -103,11 +115,10 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
     side4 = time.time()
     print(f"Side4 Time: \t{(side4 - side3) * 1000:.3f}")
     if mindex != -1:
-        box = result_boxes[mindex]
+        box = result_boxes.boxes[mindex]
 
         imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
                              dtype=np.float64)
-        # label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
         if mindex % 4 == 0:
             idn = 0
         else:
@@ -122,7 +133,7 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
 
         try:
             yolov5TRT.plot_one_box(box, image_raw,
-                         label="{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex]), )
+                         label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], result_boxes.scroes[mindex]), )
         except:
             '''g'''
 
@@ -131,16 +142,13 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
         eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
         pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
         distance = str(int(distance / 10))
-        # label=str(label)
         print(f'pryd{pitch},{yaw},{roll},{distance}')
 
         dis_1, dis_2 = get_transdata_from_10b((int(distance)))
     zero11, zero2 = get_transdata_from_10b(0)
-    # e = bin(int(240-boxes[mindex][1]) )
 
     ser.write(b'\x45')
     try:
-        # ser.write(b'\x45')
         ser.write(bytes.fromhex(dis_1))  # x-mid
         ser.write(bytes.fromhex(dis_2))
         ser.write(bytes.fromhex(x_1))  # x-mid
@@ -150,7 +158,6 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
         ser.write(bytes.fromhex(speed_1))  # x-mid
         ser.write(bytes.fromhex(speed_2))
     except:
-        # ser.write(b'\x45')
         ser.write(bytes.fromhex(zero11))  # x-mid
         ser.write(bytes.fromhex(zero11))
         ser.write(bytes.fromhex(zero11))  # x-mid
@@ -161,7 +168,6 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
         ser.write(bytes.fromhex(zero11))
     side5 = time.time()
     print(f"Side5 Time: \t{(side5 - side4) * 1000:.3f}")
-    end = time.time()
 
 class check_friends():
     """
@@ -230,36 +236,34 @@ class check_friends():
                 new.append(i)
         return torch.tensor(new)
 
-    def get_enemy_info(self, result_boxes, result_scores, result_classid):
+    def get_enemy_info(self, result_boxes):
         """
         description: 处理识别的box，输出敌军的box信息。
         param:
-            result_boxes:    boxes。
-            result_scores:   所有boxes的置信度。
-            result_classid:  所有boxes的id信息。
+            result_boxes:    boxes类。
         return:
-            敌军的boxes、置信度、id信息。
+            只含敌军的boxes类。
         """
         # 分别代表友军的box、box置信度、box的id
         exit_friends_boxes = []
         exit_friends_scores = []
         exit_friends_id = []
         friends_id = []
-        for ii in range(len(result_classid)):
-            if int(result_classid.numpy()[ii]) in self.friends_list:
-                friends_id.append(int(result_classid.numpy()[ii]))
-                exit_friends_boxes.append(result_boxes[ii])
-                exit_friends_scores.append(result_scores[ii])
-                exit_friends_id.append(result_classid[ii])
+        for ii in range(len(result_boxes.classid)):
+            if int(result_boxes.classid.numpy()[ii]) in self.friends_list:
+                friends_id.append(int(result_boxes.classid.numpy()[ii]))
+                exit_friends_boxes.append(result_boxes.boxes[ii])
+                exit_friends_scores.append(result_boxes.scroes[ii])
+                exit_friends_id.append(result_boxes.classid[ii])
         if friends_id:
             print(f"Friend Id: {friends_id}")
         enemy_list_index = []
 
         # 获取敌军的列表以及id
         try:
-            for i in result_classid.numpy():
+            for i in result_boxes.classid.numpy():
                 if int(i) not in friends_id:
-                    dex_tem = ((np.where(result_classid.numpy() == i))[0][0])
+                    dex_tem = ((np.where(result_boxes.classid.numpy() == i))[0][0])
                     enemy_list_index.append(dex_tem)
         except:
             "g"
@@ -267,70 +271,78 @@ class check_friends():
         if enemy_list_index:
             print(f"Enemy Id: {enemy_list_index}")
         for dex in enemy_list_index:
-            ourbox.append(result_boxes[dex].numpy())
+            ourbox.append(result_boxes.boxes[dex].numpy())
 
-        result_boxes = ourbox
+        result_boxes.boxes = ourbox
 
         # 置信度处理
-        result_scores = self.get_nonfriend_from_all(result_scores, exit_friends_scores)
+        result_boxes.scroes = self.get_nonfriend_from_all(result_boxes.scroes, exit_friends_scores)
         # id处理
-        result_classid = self.get_nonfriend_from_all(result_classid, exit_friends_id)
+        result_boxes.classid = self.get_nonfriend_from_all(result_boxes.classid, exit_friends_id)
         # 从而获取到处理完毕的友方敌方box
-        print(f"Nowboxes: {result_boxes}")
-        print(f"Nowscore: {result_scores}")
-        print(f"Nowid: {result_classid}")
-        return result_boxes, result_scores, result_classid
+        print(f"Nowboxes: {result_boxes.boxes}")
+        print(f"Nowscore: {result_boxes.scroes}")
+        print(f"Nowid: {result_boxes.classid}")
+        return result_boxes
 
 if __name__ == "__main__":
+    """
+    description:   运行主函数。
+    """
 
+    # 获取调试参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--engine', nargs='+', type=str, default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s)')
-    parser.add_argument('--library', nargs='+', type=str, default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s)')
+    parser.add_argument('--engine', nargs='+', type=str, 
+                        default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s)')
+    parser.add_argument('--library', nargs='+', type=str, 
+                        default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s)')
     parser.add_argument('--save', type=int, default=0, help='save?')
     opt = parser.parse_args()
-    PLUGIN_LIBRARY = opt.library
     engine_file_path = opt.engine
+    ctypes.CDLL(opt.library)
     print(f'Enginepath: {engine_file_path}')
-    ctypes.CDLL(PLUGIN_LIBRARY)
 
-    hCamera, pFrameBuffer = init_camera.get_buffer()
-    ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)
-    yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path)
-    check_friend_wrapper = check_friends(ser)
+    hCamera, pFrameBuffer = init_camera.get_buffer()              # 获取摄像头
+    ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                 # 获取串口
+    yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path)        # 初始化YOLOv5运行API
+    check_friend_wrapper = check_friends(ser)                     # 初始化友军检测类
     
-    try:
-        while 1:
-            begin = time.time()
+    # 循环检测目标与发送信息
+    while 1:
+        try:
+            begin = time.time() # 每帧总计时开始
+
+            # 获取相机图像
+            """
+            windows下取到的图像数据是上下颠倒的，以BMP格式存放。转换成opencv则需要上下翻转成正的
+            linux下直接输出正的，不需要上下翻转
+
+            此时图片已经存储在pFrameBuffer中，对于彩色相机pFrameBuffer=RGB数据，黑白相机pFrameBuffer=8位灰度数据
+            把pFrameBuffer转换成opencv的图像格式以进行后续算法处理
+            """
             pRawData, FrameHead = mvsdk.CameraGetImageBuffer(hCamera, 200)
             mvsdk.CameraImageProcess(hCamera, pRawData, pFrameBuffer, FrameHead)
             mvsdk.CameraReleaseImageBuffer(hCamera, pRawData)
 
-            # windows下取到的图像数据是上下颠倒的，以BMP格式存放。转换成opencv则需要上下翻转成正的
-            # linux下直接输出正的，不需要上下翻转
-
-            # 此时图片已经存储在pFrameBuffer中，对于彩色相机pFrameBuffer=RGB数据，黑白相机pFrameBuffer=8位灰度数据
-            # 把pFrameBuffer转换成opencv的图像格式以进行后续算法处理
             frame_data = (mvsdk.c_ubyte * FrameHead.uBytes).from_address(pFrameBuffer)
             frame = np.frombuffer(frame_data, dtype=np.uint8)
             frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
-                                   1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
-
-            # cv2.Rodrigues()
-
+                                1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
             frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
-            #_, frame = frame.read()
-            begin2 = time.time()
 
-            result_boxes, result_scores, result_classid, image_raw = yolov5_wrapper.infer(frame)
-            result_boxes, result_scores, result_classid = check_friend_wrapper.get_enemy_info(result_boxes, result_scores, result_classid)
-            trans_detect_data(ser, result_boxes, result_scores, result_classid, image_raw)
 
-            end2 = time.time()
-            end = time.time()
-            pre_time = (end - begin)
+            result, image_raw = yolov5_wrapper.infer(frame)                      # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                        # 将结果转化为boxes类
+            result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)     # 得到敌军的boxes信息
+            trans_detect_data(ser, result_boxes, image_raw)                      # 发送检测结果
+
+            end = time.time()          # 结束计时
+            pre_time = (end - begin)   # 统计用时
 
             cv2.waitKey(1)
-            cv2.imshow("result", image_raw)
-            print(f"Frame Time: {(end - begin) * 1000}ms\t\tYOLO Time: {(end2 - begin2) * 1000}ms")
-    except Exception as e:
-        print("ERROR! Run while ERROR!\n" + e)
+            cv2.imshow("result", image_raw)             # 显示图像输出
+            print(f"Frame Time: {pre_time * 1000}ms")   # 输出用时
+
+        except Exception as e:
+            print("ERROR! Run while ERROR!\n\r" + e)
+

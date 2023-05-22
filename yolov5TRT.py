@@ -76,7 +76,7 @@ class YoLov5TRT(object):
         bindings = []
 
         for binding in engine:
-            print('binding:', binding, engine.get_binding_shape(binding))
+            print('bingding:', binding, engine.get_binding_shape(binding))
             size = trt.volume(engine.get_binding_shape(binding)) * engine.max_batch_size
             dtype = trt.nptype(engine.get_binding_dtype(binding))
             # Allocate host and device buffers
@@ -150,7 +150,7 @@ class YoLov5TRT(object):
         result_boxes, result_scores, result_classid = self.post_process(
             output, origin_h, origin_w)
 
-        return result_boxes, result_scores, result_classid, image_raw
+        return (result_boxes, result_scores, result_classid), image_raw
 
     # 从这里开始照抄rt源文件
     def destroy(self):
@@ -287,7 +287,3 @@ class YoLov5TRT(object):
         result_scores = scores[indices].cpu()
         result_classid = classid[indices].cpu()
         return result_boxes, result_scores, result_classid
-    
-    # 源文件的299行代码从这里开始没有照抄
-    # 源文件下面的那些代码，会不会起到优化作用还未知
-    # 但是目前重要的是对yolov7进行移植，并且加入RT
