@@ -13,6 +13,12 @@ import yolov5TRT
 
 pre_time = 0.1 # 每帧所需时间
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
+run_mode = 1 
+"""
+运行模式:
+    0: release模式，不显示任何调试信息和图像信息，只显示报错信息，节约性能。
+    1: debug模式，显示全部的信息和图像，方便调试。
+"""
 
 # 标签列表
 categories = ["armor1red", "armor3red", "armor4red", "armor5red",           
@@ -38,9 +44,10 @@ def get_ser(port, baudrate, timeout):
         串口信息。
     """
     ser = serial.Serial(port, baudrate, timeout)
-    print(f"Serial Bytesize: {ser.bytesize}")
-    print(f"Serial Parity:   {ser.parity}")
-    print(f"Serial Stopbits: {ser.stopbits}")
+    if run_mode:
+        print(f"Serial Bytesize: {ser.bytesize}")
+        print(f"Serial Parity:   {ser.parity}")
+        print(f"Serial Stopbits: {ser.stopbits}")
     return ser
 
 def get_transdata_from_10b(transdata):
@@ -88,16 +95,19 @@ def trans_detect_data(ser, result_boxes, image_raw):
         detay = y_now - pre_y
         xx_1, xx_2 = get_transdata_from_10b((int(pre_x + detax / 2)))
         yy_1, yy_2 = get_transdata_from_10b((int(pre_y + detay / 2)))
-        print(x_1, x_2, xx_1, xx_2)
         deta_dis = np.sqrt((detay ** 2 + detax ** 2))
         speed_1, speed_2 = get_transdata_from_10b(int(500 * pre_time))
         pre_x = x_now
         pre_y = y_now
+        if run_mode:
+            print(x_1, x_2, xx_1, xx_2)
     except:
         print("Wrong Trans!")
 
     side3 = time.time()
-    print(f"Side3 Time: \t{(side3 - side2) * 1000:.3f}")
+    if run_mode:
+        print(f"Side3 Time: \t{(side3 - side2) * 1000:.3f}")
+
     tag_size = 0.05
     tag_size_half = 0.02
     half_Weight = [229 / 4, 152 / 4]
@@ -112,8 +122,11 @@ def trans_detect_data(ser, result_boxes, image_raw):
 
     cameraMatrix = K
     distCoeffs = None
+
     side4 = time.time()
-    print(f"Side4 Time: \t{(side4 - side3) * 1000:.3f}")
+    if run_mode:
+        print(f"Side4 Time: \t{(side4 - side3) * 1000:.3f}")
+    
     if mindex != -1:
         box = result_boxes.boxes[mindex]
 
@@ -142,7 +155,8 @@ def trans_detect_data(ser, result_boxes, image_raw):
         eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
         pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
         distance = str(int(distance / 10))
-        print(f'pryd{pitch},{yaw},{roll},{distance}')
+        if run_mode:
+            print(f"pryd{pitch}, {yaw}, {roll}, {distance}")
 
         dis_1, dis_2 = get_transdata_from_10b((int(distance)))
     zero11, zero2 = get_transdata_from_10b(0)
@@ -166,20 +180,22 @@ def trans_detect_data(ser, result_boxes, image_raw):
         ser.write(bytes.fromhex(zero11))
         ser.write(bytes.fromhex(zero11))  # x-mid
         ser.write(bytes.fromhex(zero11))
+    
     side5 = time.time()
-    print(f"Side5 Time: \t{(side5 - side4) * 1000:.3f}")
+    if run_mode:
+        print(f"Side5 Time: \t{(side5 - side4) * 1000:.3f}")
 
 class check_friends():
     """
     description: 检测友军
     """
-    def __init__(self, ser):
+    def __init__(self, ser, color):
         """
         description: 初始化变量以及尝试获取友军信息。
         param:
             ser:    串口信息。
         """
-        self.color = 0
+        self.color = color
         self.friends = []
         self.check_fr = 0
 
@@ -203,16 +219,17 @@ class check_friends():
         # TODO:还需要添加风车的编号，已经打过的风车和灰色风车都标记为友军
         # TODO:目前的想法：1.红蓝色已击打看作一个标签进行训练识别   2.红蓝色已击打分为两类训练识别
 
-        print(f'Recieve: {ser.read()}')
-        # 根据我方式红蓝方的设定，进行友军识别
+        if run_mode:
+            print(f"Recieve: {ser.read()}")
+        # 根据我方红蓝方的设定，进行友军识别
         if ser.read() == b'\xff':
             self.color = 1  # blue
             self.friends = [0, 1, 2, 3]
         elif ser.read() == b'\xaa':
             self.color = 2  # red
             self.friends = [4, 5, 6, 7]
-        if self.friends:
-            print(f"Friend id: {self.friends}")
+        if run_mode:
+            print(f"Friend id: {self.friends}") if self.friends else print("No friend id!")
 
         # 如果是友军而且友军列表成功添加，那么友军标记边变1，并且友军列表添加死亡的敌人
         fr = []
@@ -255,8 +272,8 @@ class check_friends():
                 exit_friends_boxes.append(result_boxes.boxes[ii])
                 exit_friends_scores.append(result_boxes.scroes[ii])
                 exit_friends_id.append(result_boxes.classid[ii])
-        if friends_id:
-            print(f"Friend Id: {friends_id}")
+        if run_mode:
+            print(f"Friend Id: {friends_id}") if friends_id else print("No friend id!")
         enemy_list_index = []
 
         # 获取敌军的列表以及id
@@ -267,45 +284,49 @@ class check_friends():
                     enemy_list_index.append(dex_tem)
         except:
             "g"
+
+        if run_mode:
+            print(f"Enemy Id: {enemy_list_index}") if enemy_list_index else print("No enemy id!")
+
         ourbox = []
-        if enemy_list_index:
-            print(f"Enemy Id: {enemy_list_index}")
         for dex in enemy_list_index:
             ourbox.append(result_boxes.boxes[dex].numpy())
 
         result_boxes.boxes = ourbox
+        result_boxes.scroes = self.get_nonfriend_from_all(result_boxes.scroes, exit_friends_scores)  # 置信度处理
+        result_boxes.classid = self.get_nonfriend_from_all(result_boxes.classid, exit_friends_id)    # id处理
 
-        # 置信度处理
-        result_boxes.scroes = self.get_nonfriend_from_all(result_boxes.scroes, exit_friends_scores)
-        # id处理
-        result_boxes.classid = self.get_nonfriend_from_all(result_boxes.classid, exit_friends_id)
-        # 从而获取到处理完毕的友方敌方box
-        print(f"Nowboxes: {result_boxes.boxes}")
-        print(f"Nowscore: {result_boxes.scroes}")
-        print(f"Nowid: {result_boxes.classid}")
+        if run_mode:
+            print(f"Nowboxes: {result_boxes.boxes}")
+            print(f"Nowscore: {result_boxes.scroes}")
+            print(f"Nowid: {result_boxes.classid}")
         return result_boxes
 
 if __name__ == "__main__":
     """
     description:   运行主函数。
     """
-
     # 获取调试参数
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine', nargs='+', type=str, 
-                        default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s)')
+                        default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='+', type=str, 
-                        default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s)')
-    parser.add_argument('--save', type=int, default=0, help='save?')
+                        default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
+    parser.add_argument('--color', nargs='+', type=int, default=0, help='Friend\'s color, 1 is blue, 2 is red.')
+    parser.add_argument('--mode', nargs='+', type=str, default="debug", help='Running mode. debug (default) or release.')
     opt = parser.parse_args()
-    engine_file_path = opt.engine
+    run_mode = 1 if opt.mode == "debug" else 0
     ctypes.CDLL(opt.library)
-    print(f'Enginepath: {engine_file_path}')
+    engine_file_path = opt.engine
+
+    if run_mode:
+        print("Debug Mode.")
+        print(f"Enginepath: {engine_file_path}")
 
     hCamera, pFrameBuffer = init_camera.get_buffer()              # 获取摄像头
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                 # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path)        # 初始化YOLOv5运行API
-    check_friend_wrapper = check_friends(ser)                     # 初始化友军检测类
+    check_friend_wrapper = check_friends(ser, opt.color)          # 初始化友军检测类
     
     # 循环检测目标与发送信息
     while 1:
@@ -340,8 +361,9 @@ if __name__ == "__main__":
             pre_time = (end - begin)   # 统计用时
 
             cv2.waitKey(1)
-            cv2.imshow("result", image_raw)             # 显示图像输出
-            print(f"Frame Time: {pre_time * 1000}ms")   # 输出用时
+            if run_mode:
+                cv2.imshow("result", image_raw)             # 显示图像输出
+                print(f"Frame Time: {pre_time * 1000}ms")   # 输出用时
 
         except Exception as e:
             print("ERROR! Run while ERROR!\n\r" + e)
