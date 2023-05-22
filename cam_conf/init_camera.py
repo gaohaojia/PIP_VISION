@@ -8,10 +8,7 @@ def get_buffer():
         print("No camera was found!")
         sys.exit()
 
-    for i, DevInfo in enumerate(DevList):
-        print("{}: {} {}".format(i, DevInfo.GetFriendlyName(), DevInfo.GetPortType()))
-    i = 0 if nDev == 1 else int(input("Select camera: "))
-    DevInfo = DevList[i]
+    DevInfo = DevList[0]
     print(DevInfo)
 
     # 打开相机
