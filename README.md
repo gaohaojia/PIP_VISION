@@ -52,3 +52,6 @@ python3 main.py
 - 修改pyd.sh文件，使其可以自动获取文件目录。
 - 现在可以自动获取engine目录。
 - 新增requirements.txt文件，安装环境时可直接使用。
+- 新增debug和release模式，debug模式将显示调试信息，release下将不显示非错误信息，节约性能。
+- 完善代码注释。
+- 新增代码文档。
