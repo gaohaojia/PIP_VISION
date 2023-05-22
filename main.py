@@ -5,6 +5,7 @@ import torch
 import numpy as np
 import argparse
 import serial
+import sys
 import os
 
 from cam_conf import init_camera
@@ -343,7 +344,7 @@ if __name__ == "__main__":
 
             if can_interrupted:
                 if keyboard.is_pressed('esc'):
-                    break
+                    sys.exit()
 
             # 获取相机图像
             """
