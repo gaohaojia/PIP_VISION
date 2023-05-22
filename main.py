@@ -12,14 +12,6 @@ from cam_conf import init_camera
 from cam_conf import mvsdk
 import yolov5TRT
 
-# 键盘打断自启功能，若安装了keyboard包则启动该功能
-can_interrupted = False
-try:
-    import keyboard
-    can_interrupted = True
-except:
-    pass
-
 pre_time = 0.1 # 每帧所需时间
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
 run_mode = 1 
@@ -341,10 +333,6 @@ if __name__ == "__main__":
     while 1:
         try:
             begin = time.time() # 每帧总计时开始
-
-            if can_interrupted:
-                if keyboard.is_pressed('esc'):
-                    sys.exit()
 
             # 获取相机图像
             """
