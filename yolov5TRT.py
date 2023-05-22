@@ -1,6 +1,5 @@
 import random
 import threading
-import time
 import cv2
 import numpy as np
 import pycuda.driver as cuda
