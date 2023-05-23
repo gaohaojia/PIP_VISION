@@ -21,10 +21,25 @@ run_mode = 1 # 运行模式
     1: debug模式，显示全部的信息和图像，方便调试。
 """
 
+model = 7
+"""
+运行的模型:
+    5: YOLOv5模型。
+    7: YOLOv7模型。
+"""
+
 # 标签列表
-categories = ["armor1red", "armor3red", "armor4red", "armor5red",           
+categories5 = ["armor1red", "armor3red", "armor4red", "armor5red",           
               "armor1blue", "armor3blue", "armor4blue",
               "armor5blue", "armor1grey", "armor3grey", "armor4grey", "armor5grey"]
+
+categories7 = ["armor1red", "armor1blue", "armor1grey",
+               "armor2red", "armor2blue", "armor2grey",
+               "armor3red", "armor3blue", "armor3grey",
+               "armor4red", "armor4blue", "armor4grey",
+               "armor5red", "armor5blue", "armor5grey",
+               "armor7red", "armor7blue", "armor7grey",
+               "bluewait", "bluedone", "nonactivate", "reddone", "redwait"]
 
 class boxes():
     """
@@ -233,19 +248,19 @@ class check_friends():
         # 根据我方红蓝方的设定，进行友军识别
         if ser.read() == b'\xff' or self.color == 1:
             self.color = 1  # blue
-            self.friends = [0, 1, 2, 3]
+            self.friends = [0, 3, 6, 9, 12, 15] if model == 7 else [0, 1, 2, 3]
         elif ser.read() == b'\xaa' or self.color == 2:
             self.color = 2  # red
-            self.friends = [4, 5, 6, 7]
+            self.friends = [1, 4, 7, 10, 13, 16] if model == 7 else [4, 5, 6, 7]
         if run_mode:
             print(f"Friend id: {self.friends}") if self.friends else print("No friend id!")
 
         # 如果是友军而且友军列表成功添加，那么友军标记边变1，并且友军列表添加死亡的敌人
         fr = []
-        if self.check_fr == 0 and len(self.friends) != 0:
+        if self.check_fr == 0 and self.friends:
             fr = self.friends
             self.check_fr = 1
-        self.friends_list = fr + [8, 9, 10, 11]
+        self.friends_list = fr + ([2, 5, 8, 11, 14, 17, 19, 20, 21] if model == 7 else [8, 9, 10, 11])
 
     def get_nonfriend_from_all(self, all, friends):
         """
@@ -317,6 +332,7 @@ if __name__ == "__main__":
     """
     # 获取调试参数
     parser = argparse.ArgumentParser()
+    parser.add_argument('--model', nargs='+', type=int, default=7, help='The model that will be used. Defualt 7.')
     parser.add_argument('--engine', nargs='+', type=str, 
                         default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='+', type=str, 
@@ -327,6 +343,8 @@ if __name__ == "__main__":
     run_mode = 1 if opt.mode == "debug" else 0
     ctypes.CDLL(opt.library)
     engine_file_path = opt.engine
+    model = opt.model
+    categories = categories7 if model == 7 else categories5
 
     if run_mode:
         print("Debug Mode.")
