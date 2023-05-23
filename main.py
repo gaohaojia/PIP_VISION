@@ -381,7 +381,7 @@ if __name__ == "__main__":
     check_friend_wrapper = check_friends(ser, opt.color)          # 初始化友军检测类
 
     listening_thread = listening_ser()
-    listening_ser.start()
+    listening_thread.start()
     
     # 循环检测目标与发送信息
     while 1:
