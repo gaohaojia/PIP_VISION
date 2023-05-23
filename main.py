@@ -339,7 +339,7 @@ if __name__ == "__main__":
     """
     # 获取调试参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', nargs='+', type=int, default=7, help='The model that will be used. Defualt 7.')
+    parser.add_argument('--model', nargs='+', type=int, default=5, help='The model that will be used. Defualt 5.')
     parser.add_argument('--engine', nargs='+', type=str, 
                         default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='+', type=str, 
