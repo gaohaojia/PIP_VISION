@@ -383,7 +383,7 @@ if __name__ == "__main__":
         print("Debug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
 
-    hCamera, pFrameBuffer = init_camera.get_buffer()                                          # 获取摄像头
+    buffer = init_camera.buffer()
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color)                                      # 初始化友军检测类
@@ -398,7 +398,7 @@ if __name__ == "__main__":
         try:
             begin = time.time() # 计时开始
 
-            frame = init_camera.get_frame()                                      # 获取相机图像
+            frame = buffer.get_frame()                                           # 获取相机图像
             result, image_raw = yolov5_wrapper.infer(frame)                      # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                        # 将结果转化为boxes类
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)     # 得到敌军的boxes信息
