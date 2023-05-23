@@ -8,12 +8,18 @@ import tensorrt as trt
 import torch
 import torchvision
 
+# 两个阈值
+# 本阈值是置信度,本代码有算法来对友军和敌军进行识别,并记录识别后的敌友置信度
+# 当置信度大于下方阈值,视为敌友识别成功,此时敌友信息才会真正传送给机器人
 CONF_THRESH = 0.5
+# 本阈值是代码末端nms(非极大抑制)算法所用,IOU可以理解为相邻两个锚框的重叠率
+# 重叠率达到这个数值,那么前一个锚框就会被舍去
 IOU_THRESHOLD = 0.1
 
 check_fr = 0
 fr = []
 
+# 对目标下一帧X,Y坐标的预测值
 pre_x = 0
 pre_y = 0
 
@@ -149,9 +155,11 @@ class YoLov5TRT(object):
         result_boxes, result_scores, result_classid = self.post_process(
             output, origin_h, origin_w)
 
+        # 后续对YOLOV7的移植，这里需要添加代码
+
         return (result_boxes, result_scores, result_classid), image_raw
 
-    # 从这里开始照抄rt源文件
+    # TODO:从这里开始照抄rt源文件
     def destroy(self):
         # Remove any context from the top of the context stack, deactivating it.
         self.ctx.pop()
@@ -246,6 +254,7 @@ class YoLov5TRT(object):
 
         return y
 
+    # TODO:本函数针对于比赛，进行了代码添加
     def post_process(self, output, origin_h, origin_w):
         """
         description: postprocess the prediction
@@ -262,6 +271,7 @@ class YoLov5TRT(object):
         num = int(output[0])
         # Reshape to a two dimentional ndarray
         pred = np.reshape(output[1:], (-1, 6))[:num, :]
+
         # 这里针对比赛和机器人进行了代码添加
         # 主要功能是锚框 置信度 标号的转换融合操作
         # to a torch Tensor
@@ -280,6 +290,8 @@ class YoLov5TRT(object):
         # Trandform bbox from [center_x, center_y, w, h] to [x1, y1, x2, y2]
         boxes = self.xywh2xyxy(origin_h, origin_w, boxes)
         # 代码添加到这里结束
+        
+        # TODO:值得注意的是，下面nms算法在cpu中进行，而nms算法是十分耗费资源的，这是优化的切入点之一
         # Do nms
         indices = torchvision.ops.nms(boxes, scores, iou_threshold=IOU_THRESHOLD).cpu()
         result_boxes = boxes[indices, :].cpu()

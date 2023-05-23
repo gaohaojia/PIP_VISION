@@ -14,7 +14,7 @@ import yolov5TRT
 
 pre_time = 0.1 # 每帧所需时间
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
-run_mode = 1 
+run_mode = 1 # 运行模式
 """
 运行模式:
     0: release模式，不显示任何调试信息和图像信息，只显示报错信息，节约性能。
@@ -86,6 +86,7 @@ def trans_detect_data(ser, result_boxes, image_raw):
     else:
         mindex = np.argmin(numlist)
 
+    # 距离运算
     try:
         global pre_x, pre_y
         x_now = int((boxes_np[mindex][0] + boxes_np[mindex][2]) / 2)
@@ -94,9 +95,11 @@ def trans_detect_data(ser, result_boxes, image_raw):
         y_1, y_2 = get_transdata_from_10b((y_now))
         detax = x_now - pre_x
         detay = y_now - pre_y
+        # 计算欧氏距离
         xx_1, xx_2 = get_transdata_from_10b((int(pre_x + detax / 2)))
         yy_1, yy_2 = get_transdata_from_10b((int(pre_y + detay / 2)))
         deta_dis = np.sqrt((detay ** 2 + detax ** 2))
+        # 根据距离和时间步长推测速度
         speed_1, speed_2 = get_transdata_from_10b(int(500 * pre_time))
         pre_x = x_now
         pre_y = y_now
@@ -114,12 +117,16 @@ def trans_detect_data(ser, result_boxes, image_raw):
     half_Weight = [229 / 4, 152 / 4]
     half_Height = [126 / 4, 142 / 4]
 
+    # 下面进行的操作就是把现实世界3D坐标系的点位，通过相机内参得到2D平面上的点位
+    # 可以看看这篇文章，写的还不错https://www.jianshu.com/p/1bf329da535b
+    # 归根结底还是距离和速度的预测推算
+
     fx = 1056.4967111
     fy = 1056.6221413136
     cx = 657.4915775667
     cy = 508.2778608
     xxx = -0.392652606
-    K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # neican
+    K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # 相机内参矩阵
 
     cameraMatrix = K
     distCoeffs = None
@@ -162,6 +169,7 @@ def trans_detect_data(ser, result_boxes, image_raw):
         dis_1, dis_2 = get_transdata_from_10b((int(distance)))
     zero11, zero2 = get_transdata_from_10b(0)
 
+    # 串口进行数据传输,传输距离，坐标，预测速度
     ser.write(b'\x45')
     try:
         ser.write(bytes.fromhex(dis_1))  # x-mid
