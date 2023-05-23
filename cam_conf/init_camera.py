@@ -1,7 +1,9 @@
 import sys
+import numpy as np
+import cv2
 from cam_conf import mvsdk
 
-def get_buffer():
+def get_frame():
     DevList = mvsdk.CameraEnumerateDevice()
     nDev = len(DevList)
     if nDev < 1:
@@ -46,4 +48,22 @@ def get_buffer():
     # 分配RGB buffer，用来存放ISP输出的图像
     # 备注：从相机传输到PC端的是RAW数据，在PC端通过软件ISP转为RGB数据（如果是黑白相机就不需要转换格式，但是ISP还有其它处理，所以也需要分配这个buffer）
     pFrameBuffer = mvsdk.CameraAlignMalloc(FrameBufferSize, 16)
-    return hCamera, pFrameBuffer
+
+    """
+    windows下取到的图像数据是上下颠倒的，以BMP格式存放。转换成opencv则需要上下翻转成正的
+    linux下直接输出正的，不需要上下翻转
+
+    此时图片已经存储在pFrameBuffer中，对于彩色相机pFrameBuffer=RGB数据，黑白相机pFrameBuffer=8位灰度数据
+    把pFrameBuffer转换成opencv的图像格式以进行后续算法处理
+    """
+    pRawData, FrameHead = mvsdk.CameraGetImageBuffer(hCamera, 200)
+    mvsdk.CameraImageProcess(hCamera, pRawData, pFrameBuffer, FrameHead)
+    mvsdk.CameraReleaseImageBuffer(hCamera, pRawData)
+
+    frame_data = (mvsdk.c_ubyte * FrameHead.uBytes).from_address(pFrameBuffer)
+    frame = np.frombuffer(frame_data, dtype=np.uint8)
+    frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
+                        1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
+    frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
+
+    return frame
