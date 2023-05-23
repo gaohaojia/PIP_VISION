@@ -399,6 +399,12 @@ if __name__ == "__main__":
             begin = time.time() # 计时开始
 
             frame = buffer.get_frame()                                           # 获取相机图像
+            if FOCUSING_MODEL:
+                start_col, end_col = int(frame.shape[0] * 0.25), int(frame.shape[0] * 0.75)
+                start_raw, end_raw = int(frame.shape[1] * 0.25), int(frame.shape[1] * 0.75)
+                frame = frame[start_col:end_col, start_raw:end_raw, :]
+
+            frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
             result, image_raw = yolov5_wrapper.infer(frame)                      # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                        # 将结果转化为boxes类
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)     # 得到敌军的boxes信息

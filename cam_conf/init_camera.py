@@ -66,6 +66,4 @@ class buffer():
         frame = np.frombuffer(frame_data, dtype=np.uint8)
         frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
                             1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
-        frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
-
         return frame
