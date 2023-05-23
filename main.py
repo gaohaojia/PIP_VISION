@@ -357,7 +357,7 @@ if __name__ == "__main__":
     """
     # 获取调试参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', nargs='+', type=int, default=7, help='The model that will be used. Defualt 7.')
+    parser.add_argument('--model', nargs='+', type=int, default=5, help='The model that will be used. Defualt 5.')
     parser.add_argument('--engine', nargs='+', type=str, 
                         default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='+', type=str, 
@@ -380,8 +380,10 @@ if __name__ == "__main__":
     yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color)          # 初始化友军检测类
 
-    listening_thread = listening_ser()
+    ''' 待与电控测试
+    listening_thread = listening_ser()  # 运行监听线程
     listening_thread.start()
+    '''
     
     # 循环检测目标与发送信息
     while 1:
