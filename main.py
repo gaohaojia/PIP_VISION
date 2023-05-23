@@ -6,6 +6,7 @@ import numpy as np
 import argparse
 import serial
 import os
+import threading
 
 from cam_conf import init_camera
 from cam_conf import mvsdk
@@ -332,6 +333,23 @@ class check_friends():
             print(f"Nowscore: {result_boxes.scores}")
             print(f"Nowid: {result_boxes.classid}")
         return result_boxes
+    
+class listening_ser(threading.Thread):
+    """
+    description:  监听线程，用于监听电控信号。
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while (1):
+            get_ser = None
+            try:
+                get_ser = ser.read()
+                if get_ser != None:
+                    print(ser.read())
+            except:
+                pass
 
 if __name__ == "__main__":
     """
@@ -361,6 +379,9 @@ if __name__ == "__main__":
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                 # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color)          # 初始化友军检测类
+
+    listening_thread = listening_ser()
+    listening_ser.start()
     
     # 循环检测目标与发送信息
     while 1:
@@ -401,4 +422,3 @@ if __name__ == "__main__":
 
         except Exception as e:
             print(e)
-
