@@ -8,13 +8,9 @@ import tensorrt as trt
 import torch
 import torchvision
 
-# 两个阈值
-# 本阈值是置信度,本代码有算法来对友军和敌军进行识别,并记录识别后的敌友置信度
-# 当置信度大于下方阈值,视为敌友识别成功,此时敌友信息才会真正传送给机器人
-CONF_THRESH = 0.5
-# 本阈值是代码末端nms(非极大抑制)算法所用,IOU可以理解为相邻两个锚框的重叠率
-# 重叠率达到这个数值,那么前一个锚框就会被舍去
-IOU_THRESHOLD = 0.1
+# 调此处无效
+CONF_THRESH = 0
+IOU_THRESHOLD = 0
 
 check_fr = 0
 fr = []
@@ -62,7 +58,11 @@ class YoLov5TRT(object):
     """
     description: A YOLOv5 class that warps TensorRT ops, preprocess and postprocess ops.
     """
-    def __init__(self, engine_file_path):
+    def __init__(self, engine_file_path, conf_thresh, iou_threshold):
+
+        CONF_THRESH = conf_thresh
+        IOU_THRESHOLD = iou_threshold
+
         # Create a Context on this device,
         self.ctx = cuda.Device(0).make_context()
         stream = cuda.Stream()

@@ -5,12 +5,19 @@ import torch
 import numpy as np
 import argparse
 import serial
-import sys
 import os
 
 from cam_conf import init_camera
 from cam_conf import mvsdk
 import yolov5TRT
+
+# 两个阈值
+# 本阈值是置信度,本代码有算法来对友军和敌军进行识别,并记录识别后的敌友置信度
+# 当置信度大于下方阈值,视为敌友识别成功,此时敌友信息才会真正传送给机器人
+CONF_THRESH = 0.5
+# 本阈值是代码末端nms(非极大抑制)算法所用,IOU可以理解为相邻两个锚框的重叠率
+# 重叠率达到这个数值,那么前一个锚框就会被舍去
+IOU_THRESHOLD = 0.5
 
 pre_time = 0.1 # 每帧所需时间
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
@@ -352,7 +359,7 @@ if __name__ == "__main__":
 
     hCamera, pFrameBuffer = init_camera.get_buffer()              # 获取摄像头
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                 # 获取串口
-    yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path)        # 初始化YOLOv5运行API
+    yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color)          # 初始化友军检测类
     
     # 循环检测目标与发送信息
