@@ -107,6 +107,7 @@ def scale_boxes(result_boxes, raw_rate, col_rate):
         缩放后的boxes。
     """
     if result_boxes.boxes:
+        print(result_boxes.boxes)
         result_boxes.boxes[:][0], result_boxes.boxes[:][2] = raw_rate * result_boxes.boxes[:][0], raw_rate * result_boxes.boxes[:][2]
         result_boxes.boxes[:][1], result_boxes.boxes[:][3] = col_rate * result_boxes.boxes[:][1], col_rate * result_boxes.boxes[:][3]
     return result_boxes
@@ -155,7 +156,8 @@ def trans_detect_data(ser, result_boxes, image_raw):
         if RUN_MODE:
             print(x_1, x_2, xx_1, xx_2)
     except:
-        print("Wrong Trans!")
+        if RUN_MODE:
+            print("Wrong Trans!")
 
     side3 = time.time()
     if RUN_MODE:
@@ -439,8 +441,8 @@ if __name__ == "__main__":
             pre_time = (end - begin)   # 统计用时
 
             cv2.waitKey(1)
+            cv2.imshow("result", image_raw)                 # 显示图像输出
             if RUN_MODE:
-                cv2.imshow("result", image_raw)             # 显示图像输出
                 print(f"Frame Time: {pre_time * 1000}ms")   # 输出用时
 
         except Exception as e:
