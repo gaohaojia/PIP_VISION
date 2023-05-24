@@ -107,10 +107,8 @@ def scale_boxes(result_boxes, raw_rate, col_rate):
         缩放后的boxes。
     """
     if result_boxes.boxes:
-        boxes_np = np.array(result_boxes.boxes)
-        print(boxes_np)
-        result_boxes.boxes[:][0], result_boxes.boxes[:][2] = raw_rate * result_boxes.boxes[:][0], raw_rate * result_boxes.boxes[:][2]
-        result_boxes.boxes[:][1], result_boxes.boxes[:][3] = col_rate * result_boxes.boxes[:][1], col_rate * result_boxes.boxes[:][3]
+        result_boxes.boxes[0][0], result_boxes.boxes[0][2] = raw_rate * result_boxes.boxes[0][0], raw_rate * result_boxes.boxes[0][2]
+        result_boxes.boxes[0][1], result_boxes.boxes[0][3] = col_rate * result_boxes.boxes[0][1], col_rate * result_boxes.boxes[0][3]
     return result_boxes
 
 def trans_detect_data(ser, result_boxes, image_raw):
@@ -435,7 +433,8 @@ if __name__ == "__main__":
             result, image_raw = yolov5_wrapper.infer(input_frame)                                   # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                           # 将结果转化为boxes类
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                        # 得到敌军的boxes信息
-            result_boxes = scale_boxes(result_boxes, FRAME_RAW / frame.shape[1], FRAME_COL / frame.shape[0])
+            if FOCUSING_MODEL:
+                result_boxes = scale_boxes(result_boxes, FRAME_RAW / frame.shape[1], FRAME_COL / frame.shape[0])
             trans_detect_data(ser, result_boxes, image_raw)                                         # 发送检测结果
 
             end = time.time()          # 结束计时
