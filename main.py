@@ -109,10 +109,10 @@ def scale_boxes(result_boxes, raw, col):
     if result_boxes.boxes:
         raw_rate = FRAME_RAW / raw
         col_rate = FRAME_COL / col
-        result_boxes.boxes[0][0] = (result_boxes.boxes[0][0] * raw_rate + int((raw - FRAME_RAW) / 2)) * raw_rate
-        result_boxes.boxes[0][2] = (result_boxes.boxes[0][2] * raw_rate + int((raw - FRAME_RAW) / 2)) * raw_rate
-        result_boxes.boxes[0][1] = (result_boxes.boxes[0][1] * col_rate + int((col - FRAME_COL) / 2)) * col_rate
-        result_boxes.boxes[0][3] = (result_boxes.boxes[0][3] * col_rate + int((col - FRAME_COL) / 2)) * col_rate
+        result_boxes.boxes[0][0] = (result_boxes.boxes[0][0] + int((raw - FRAME_RAW) / 2)) * raw_rate
+        result_boxes.boxes[0][2] = (result_boxes.boxes[0][2] + int((raw - FRAME_RAW) / 2)) * raw_rate
+        result_boxes.boxes[0][1] = (result_boxes.boxes[0][1] + int((col - FRAME_COL) / 2)) * col_rate
+        result_boxes.boxes[0][3] = (result_boxes.boxes[0][3] + int((col - FRAME_COL) / 2)) * col_rate
     return result_boxes
 
 def trans_detect_data(ser, result_boxes, image_raw):
