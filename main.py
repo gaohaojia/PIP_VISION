@@ -96,7 +96,7 @@ def get_transdata_from_10b(transdata):
     b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
     return [b16s[:2], b16s[2:]]
 
-def scale_boxes(result_boxes, raw_rate, col_rate):
+def scale_boxes(result_boxes, raw, col):
     """
     description: 按比例缩放boxes。
     param:
@@ -107,8 +107,12 @@ def scale_boxes(result_boxes, raw_rate, col_rate):
         缩放后的boxes。
     """
     if result_boxes.boxes:
-        result_boxes.boxes[0][0], result_boxes.boxes[0][2] = raw_rate * result_boxes.boxes[0][0], raw_rate * result_boxes.boxes[0][2]
-        result_boxes.boxes[0][1], result_boxes.boxes[0][3] = col_rate * result_boxes.boxes[0][1], col_rate * result_boxes.boxes[0][3]
+        raw_rate = FRAME_RAW / raw
+        col_rate = FRAME_COL / col
+        result_boxes.boxes[0][0] = raw_rate * result_boxes.boxes[0][0] + int((raw - FRAME_RAW) / 2)
+        result_boxes.boxes[0][2] = raw_rate * result_boxes.boxes[0][2] + int((raw - FRAME_RAW) / 2)
+        result_boxes.boxes[0][1] = col_rate * result_boxes.boxes[0][1] + int((col - FRAME_COL) / 2)
+        result_boxes.boxes[0][3] = col_rate * result_boxes.boxes[0][3] + int((col - FRAME_COL) / 2)
     return result_boxes
 
 def trans_detect_data(ser, result_boxes, image_raw):
@@ -429,19 +433,22 @@ if __name__ == "__main__":
                 input_frame = frame[start_col:end_col, start_raw:end_raw, :]                        # 1024*1280
             else:
                 input_frame = cv2.resize(frame, (FRAME_RAW, FRAME_COL), interpolation=cv2.INTER_LINEAR)
+                frame = input_frame
 
-            result, image_raw = yolov5_wrapper.infer(input_frame)                                   # 用YOLOv5检测目标
+            result = yolov5_wrapper.infer(input_frame)                                       # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                           # 将结果转化为boxes类
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                        # 得到敌军的boxes信息
             if FOCUSING_MODEL:
-                result_boxes = scale_boxes(result_boxes, FRAME_RAW / frame.shape[1], FRAME_COL / frame.shape[0])
-            trans_detect_data(ser, result_boxes, image_raw)                                         # 发送检测结果
+                result_boxes = scale_boxes(result_boxes, frame.shape[1], frame.shape[0])
+                frame = cv2.resize(frame, (FRAME_RAW, FRAME_COL), interpolation=cv2.INTER_LINEAR)
+            
+            trans_detect_data(ser, result_boxes, frame)                                         # 发送检测结果
 
             end = time.time()          # 结束计时
             pre_time = (end - begin)   # 统计用时
 
             cv2.waitKey(1)
-            cv2.imshow("result", image_raw)                 # 显示图像输出
+            cv2.imshow("result", frame)                 # 显示图像输出
             if RUN_MODE:
                 print(f"Frame Time: {pre_time * 1000}ms")   # 输出用时
 

@@ -151,7 +151,7 @@ class YoLov5TRT(object):
         result_boxes, result_scores, result_classid = self.post_process(
             output, origin_h, origin_w)
         
-        return (result_boxes, result_scores, result_classid), image_raw
+        return (result_boxes, result_scores, result_classid)
 
     def destroy(self):
         # Remove any context from the top of the context stack, deactivating it.
