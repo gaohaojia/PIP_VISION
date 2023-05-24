@@ -209,6 +209,10 @@ def trans_detect_data(ser, result_boxes, image_raw):
         try:
             yolov5TRT.plot_one_box(box, image_raw,
                          label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], result_boxes.scores[mindex]), )
+            if FOCUSING_MODEL:
+                start_col, end_col = int((image_raw.shape[0] - FRAME_COL) / 2), int((image_raw.shape[0] + FRAME_COL) / 2)
+                start_raw, end_raw = int((image_raw.shape[1] - FRAME_RAW) / 2), int((image_raw.shape[1] + FRAME_RAW) / 2)
+                yolov5TRT.plot_one_box([start_raw, start_col, end_raw, end_col], image_raw, label="", )
         except:
             '''g'''
 
