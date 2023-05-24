@@ -96,6 +96,20 @@ def get_transdata_from_10b(transdata):
     b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
     return [b16s[:2], b16s[2:]]
 
+def scale_boxes(result_boxes, raw_rate, col_rate):
+    """
+    description: 按比例缩放boxes。
+    param:
+        result_boxes:    欲缩放的boxes。
+        raw_rate:        横向缩放比率。
+        col_rate:        纵向缩放比率。
+    return:
+        缩放后的boxes。
+    """
+    result_boxes.boxes[:][0], result_boxes.boxes[:][2] *= raw_rate
+    result_boxes.boxes[:][1], result_boxes.boxes[:][3] *= col_rate
+    return result_boxes
+
 def trans_detect_data(ser, result_boxes, image_raw):
     """
     description: 将detect的信息与电控通讯。
@@ -406,16 +420,18 @@ if __name__ == "__main__":
             begin = time.time() # 计时开始
 
             frame = buffer.get_frame()   # 获取相机图像
+            input_frame = None
             if FOCUSING_MODEL:
                 start_col, end_col = int((frame.shape[0] - FRAME_COL) / 2), int((frame.shape[0] + FRAME_COL) / 2)
                 start_raw, end_raw = int((frame.shape[1] - FRAME_RAW) / 2), int((frame.shape[1] + FRAME_RAW) / 2)
-                frame = frame[start_col:end_col, start_raw:end_raw, :] # 1024*1280
+                input_frame = frame[start_col:end_col, start_raw:end_raw, :]                        # 1024*1280
             else:
-                frame = cv2.resize(frame, (FRAME_RAW, FRAME_COL), interpolation=cv2.INTER_LINEAR)
+                input_frame = cv2.resize(frame, (FRAME_RAW, FRAME_COL), interpolation=cv2.INTER_LINEAR)
 
-            result, image_raw = yolov5_wrapper.infer(frame)                                         # 用YOLOv5检测目标
+            result, image_raw = yolov5_wrapper.infer(input_frame)                                   # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                           # 将结果转化为boxes类
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                        # 得到敌军的boxes信息
+            result_boxes = scale_boxes(result_boxes, FRAME_RAW / frame.shape[1], FRAME_COL / frame.shape[0])
             trans_detect_data(ser, result_boxes, image_raw)                                         # 发送检测结果
                    
             end = time.time()          # 结束计时
