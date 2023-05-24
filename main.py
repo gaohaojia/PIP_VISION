@@ -107,7 +107,8 @@ def scale_boxes(result_boxes, raw_rate, col_rate):
         缩放后的boxes。
     """
     if result_boxes.boxes:
-        print(result_boxes.boxes)
+        boxes_np = np.array(result_boxes.boxes)
+        print(boxes_np)
         result_boxes.boxes[:][0], result_boxes.boxes[:][2] = raw_rate * result_boxes.boxes[:][0], raw_rate * result_boxes.boxes[:][2]
         result_boxes.boxes[:][1], result_boxes.boxes[:][3] = col_rate * result_boxes.boxes[:][1], col_rate * result_boxes.boxes[:][3]
     return result_boxes
@@ -283,10 +284,10 @@ class check_friends():
             print(f"Recieve: {ser.read()}")
         # 根据我方红蓝方的设定，进行友军识别
         if ser.read() == b'\xff' or self.color == 1:
-            self.color = 1  # blue
+            self.color = 1  # red
             self.friends = [0, 3, 6, 9, 12, 15] if ENGINE_VERSION == 7 else [0, 1, 2, 3]
         elif ser.read() == b'\xaa' or self.color == 2:
-            self.color = 2  # red
+            self.color = 2  # blue
             self.friends = [1, 4, 7, 10, 13, 16] if ENGINE_VERSION == 7 else [4, 5, 6, 7]
         if RUN_MODE:
             print(f"Friend id: {self.friends}") if self.friends else print("No friend id!")
@@ -390,7 +391,7 @@ if __name__ == "__main__":
                         default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='+', type=str, 
                         default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
-    parser.add_argument('--color', nargs='+', type=int, default=1, help='Friend\'s color, 1 is blue (default), 2 is red.')
+    parser.add_argument('--color', nargs='+', type=int, default=1, help='Friend\'s color, 1 is red (default), 2 is blue.')
     parser.add_argument('--mode', nargs='+', type=str, default="debug", help='Running mode. debug (default) or release.')
     parser.add_argument('--focusing', nargs='+', type=bool, default=False, help='Is activate focusing model. Default False.')
     opt = parser.parse_args()
