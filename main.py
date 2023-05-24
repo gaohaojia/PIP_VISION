@@ -426,23 +426,24 @@ if __name__ == "__main__":
             begin = time.time() # 计时开始
 
             frame = buffer.get_frame()   # 获取相机图像
+
             input_frame = None
             if FOCUSING_MODEL:
                 start_col, end_col = int((frame.shape[0] - FRAME_COL) / 2), int((frame.shape[0] + FRAME_COL) / 2)
                 start_raw, end_raw = int((frame.shape[1] - FRAME_RAW) / 2), int((frame.shape[1] + FRAME_RAW) / 2)
-                input_frame = frame[start_col:end_col, start_raw:end_raw, :]                        # 1024*1280
+                input_frame = frame[start_col:end_col, start_raw:end_raw, :]                               # 裁切图像用于聚焦识别
             else:
                 input_frame = cv2.resize(frame, (FRAME_RAW, FRAME_COL), interpolation=cv2.INTER_LINEAR)
                 frame = input_frame
 
-            result = yolov5_wrapper.infer(input_frame)                                       # 用YOLOv5检测目标
-            result_boxes = boxes(*result)                                                           # 将结果转化为boxes类
-            result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                        # 得到敌军的boxes信息
+            result = yolov5_wrapper.infer(input_frame)                                                     # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
+            result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                               # 得到敌军的boxes信息
             if FOCUSING_MODEL:
-                result_boxes = scale_boxes(result_boxes, frame.shape[1], frame.shape[0])
+                result_boxes = scale_boxes(result_boxes, frame.shape[1], frame.shape[0])                   # 将结果还原到原图像
                 frame = cv2.resize(frame, (FRAME_RAW, FRAME_COL), interpolation=cv2.INTER_LINEAR)
             
-            trans_detect_data(ser, result_boxes, frame)                                         # 发送检测结果
+            trans_detect_data(ser, result_boxes, frame)                                                    # 发送检测结果
 
             end = time.time()          # 结束计时
             pre_time = (end - begin)   # 统计用时
