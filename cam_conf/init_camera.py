@@ -12,7 +12,6 @@ class buffer():
             sys.exit()
 
         DevInfo = DevList[0]
-        print(DevInfo)
 
         # 打开相机
         self.hCamera = 0

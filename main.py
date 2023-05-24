@@ -38,6 +38,11 @@ FOCUSING_MODEL = False
 聚焦模式:
     启用后目标仅检测图像中心附近的目标。
 """
+FRAME_RAW, FRAME_COL = 640, 480
+"""
+检测大小:
+    模型检测时的输入图像。
+"""
 
 pre_time = 0.1 # 每帧所需时间
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
@@ -108,7 +113,7 @@ def trans_detect_data(ser, result_boxes, image_raw):
     # 计算谁离中心近
     for isb in range(inde):
         numlist.append(
-            float(((boxes_np[isb][0] + boxes_np[isb][2]) / 2 - 320) ** 2 + ((boxes_np[isb][1] + boxes_np[isb][3]) - 240) ** 2))
+            float(((boxes_np[isb][0] + boxes_np[isb][2]) / 2 - (FRAME_RAW / 2)) ** 2 + ((boxes_np[isb][1] + boxes_np[isb][3]) - (FRAME_COL / 2)) ** 2))
     mindex = -1
     if len(numlist) == 0:
         mindex = -1
@@ -382,6 +387,8 @@ if __name__ == "__main__":
     if RUN_MODE:
         print("Debug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
+        if FOCUSING_MODEL:
+            print("Focusing model activated.")
 
     buffer = init_camera.buffer()
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
@@ -398,18 +405,19 @@ if __name__ == "__main__":
         try:
             begin = time.time() # 计时开始
 
-            frame = buffer.get_frame()                                           # 获取相机图像
+            frame = buffer.get_frame()   # 获取相机图像
             if FOCUSING_MODEL:
-                start_col, end_col = int(frame.shape[0] * 0.25), int(frame.shape[0] * 0.75)
-                start_raw, end_raw = int(frame.shape[1] * 0.25), int(frame.shape[1] * 0.75)
-                frame = frame[start_col:end_col, start_raw:end_raw, :]
+                start_col, end_col = int((frame.shape[0] - FRAME_COL) / 2), int((frame.shape[0] + FRAME_COL) / 2)
+                start_raw, end_raw = int((frame.shape[1] - FRAME_RAW) / 2), int((frame.shape[1] + FRAME_RAW) / 2)
+                frame = frame[start_col:end_col, start_raw:end_raw, :] # 1024*1280
+            else:
+                frame = cv2.resize(frame, (FRAME_RAW, FRAME_COL), interpolation=cv2.INTER_LINEAR)
 
-            frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
-            result, image_raw = yolov5_wrapper.infer(frame)                      # 用YOLOv5检测目标
-            result_boxes = boxes(*result)                                        # 将结果转化为boxes类
-            result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)     # 得到敌军的boxes信息
-            trans_detect_data(ser, result_boxes, image_raw)                      # 发送检测结果
-
+            result, image_raw = yolov5_wrapper.infer(frame)                                         # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                                           # 将结果转化为boxes类
+            result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                        # 得到敌军的boxes信息
+            trans_detect_data(ser, result_boxes, image_raw)                                         # 发送检测结果
+                   
             end = time.time()          # 结束计时
             pre_time = (end - begin)   # 统计用时
 
