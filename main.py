@@ -134,6 +134,14 @@ def trans_detect_data(ser, result_boxes, image_raw):
     inde = boxes_np.shape[0]
     numlist = []
 
+    # 绘制聚焦区域
+    if FOCUSING_MODEL:
+            start_col = int((FRAME_COL - INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
+            end_col = int((FRAME_COL + INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
+            start_raw = int((FRAME_RAW - INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
+            end_raw = int((FRAME_RAW + INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
+            yolov5TRT.plot_one_box([start_raw, start_col, end_raw, end_col], image_raw, label="", )
+
     # 计算谁离中心近
     for isb in range(inde):
         numlist.append(
@@ -216,12 +224,6 @@ def trans_detect_data(ser, result_boxes, image_raw):
             yolov5TRT.plot_one_box(box, image_raw,
                                    label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], 
                                    result_boxes.scores[mindex]), )
-        if FOCUSING_MODEL:
-            start_col = int((FRAME_COL - INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
-            end_col = int((FRAME_COL + INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
-            start_raw = int((FRAME_RAW - INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
-            end_raw = int((FRAME_RAW + INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
-            yolov5TRT.plot_one_box([start_raw, start_col, end_raw, end_col], image_raw, label="", )
 
         rvec_matrix = cv2.Rodrigues(rvec)[0]
         proj_matrix = np.hstack((rvec_matrix, rvec))
