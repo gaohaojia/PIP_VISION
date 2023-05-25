@@ -38,7 +38,7 @@ FOCUSING_MODEL = False
 聚焦模式:
     启用后目标仅检测图像中心附近的目标。
 """
-FRAME_RAW, FRAME_COL = 1024, 1280
+FRAME_RAW, FRAME_COL = 1280, 1024
 """
 相机大小:
     相机输出的图像大小。
@@ -211,19 +211,17 @@ def trans_detect_data(ser, result_boxes, image_raw):
 
         distance = np.linalg.norm(tvec)
 
-        try:
-            if box:
-                yolov5TRT.plot_one_box(box, image_raw,
-                                       label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], 
-                                       result_boxes.scores[mindex]), )
-            if FOCUSING_MODEL:
-                start_col = int((FRAME_COL - INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
-                end_col = int((FRAME_COL + INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
-                start_raw = int((FRAME_RAW - INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
-                end_raw = int((FRAME_RAW + INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
-                yolov5TRT.plot_one_box([start_raw, start_col, end_raw, end_col], image_raw, label="", )
-        except:
-            '''g'''
+        
+        if box:
+            yolov5TRT.plot_one_box(box, image_raw,
+                                   label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], 
+                                   result_boxes.scores[mindex]), )
+        if FOCUSING_MODEL:
+            start_col = int((FRAME_COL - INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
+            end_col = int((FRAME_COL + INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
+            start_raw = int((FRAME_RAW - INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
+            end_raw = int((FRAME_RAW + INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
+            yolov5TRT.plot_one_box([start_raw, start_col, end_raw, end_col], image_raw, label="", )
 
         rvec_matrix = cv2.Rodrigues(rvec)[0]
         proj_matrix = np.hstack((rvec_matrix, rvec))
