@@ -112,12 +112,13 @@ def scale_boxes(result_boxes):
         缩放后的boxes。
     """
     if result_boxes.boxes:
-        raw_rate = INPUT_RAW / FRAME_RAW
-        col_rate = INPUT_COL / FRAME_COL
-        result_boxes.boxes[0][0] = (result_boxes.boxes[0][0] + int((FRAME_RAW - INPUT_RAW) / 2)) * raw_rate
-        result_boxes.boxes[0][2] = (result_boxes.boxes[0][2] + int((FRAME_RAW - INPUT_RAW) / 2)) * raw_rate
-        result_boxes.boxes[0][1] = (result_boxes.boxes[0][1] + int((FRAME_COL - INPUT_COL) / 2)) * col_rate
-        result_boxes.boxes[0][3] = (result_boxes.boxes[0][3] + int((FRAME_COL - INPUT_COL) / 2)) * col_rate
+        for idx in range(result_boxes.boxes.shape[0]):
+            raw_rate = INPUT_RAW / FRAME_RAW
+            col_rate = INPUT_COL / FRAME_COL
+            result_boxes.boxes[idx][0] = (result_boxes.boxes[idx][0] + int((FRAME_RAW - INPUT_RAW) / 2)) * raw_rate
+            result_boxes.boxes[idx][2] = (result_boxes.boxes[idx][2] + int((FRAME_RAW - INPUT_RAW) / 2)) * raw_rate
+            result_boxes.boxes[idx][1] = (result_boxes.boxes[idx][1] + int((FRAME_COL - INPUT_COL) / 2)) * col_rate
+            result_boxes.boxes[idx][3] = (result_boxes.boxes[idx][3] + int((FRAME_COL - INPUT_COL) / 2)) * col_rate
     return result_boxes
 
 def trans_detect_data(ser, result_boxes, image_raw):
