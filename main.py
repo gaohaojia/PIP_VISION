@@ -101,27 +101,6 @@ def get_transdata_from_10b(transdata):
     b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
     return [b16s[:2], b16s[2:]]
 
-def scale_boxes(result_boxes):
-    """
-    description: 按比例缩放boxes。
-    param:
-        result_boxes:    欲缩放的boxes。
-        raw_rate:        横向缩放比率。
-        col_rate:        纵向缩放比率。
-    return:
-        缩放后的boxes。
-    """
-    if result_boxes.boxes:
-        boxes_np = np.array(result_boxes.boxes)
-        for idx in range(boxes_np.shape[0]):
-            raw_rate = INPUT_RAW / FRAME_RAW
-            col_rate = INPUT_COL / FRAME_COL
-            boxes_np[idx][0] = (boxes_np[idx][0] + int((FRAME_RAW - INPUT_RAW) / 2)) * raw_rate
-            boxes_np[idx][2] = (boxes_np[idx][2] + int((FRAME_RAW - INPUT_RAW) / 2)) * raw_rate
-            boxes_np[idx][1] = (boxes_np[idx][1] + int((FRAME_COL - INPUT_COL) / 2)) * col_rate
-            boxes_np[idx][3] = (boxes_np[idx][3] + int((FRAME_COL - INPUT_COL) / 2)) * col_rate
-    return result_boxes
-
 def trans_detect_data(ser, result_boxes, image_raw):
     """
     description: 将detect的信息与电控通讯。
@@ -135,14 +114,6 @@ def trans_detect_data(ser, result_boxes, image_raw):
     boxes_np = np.array(result_boxes.boxes)
     inde = boxes_np.shape[0]
     numlist = []
-
-    # 绘制聚焦区域
-    if FOCUSING_MODEL:
-            start_col = int((FRAME_COL - INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
-            end_col = int((FRAME_COL + INPUT_COL) / 2) * (INPUT_COL / FRAME_COL)
-            start_raw = int((FRAME_RAW - INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
-            end_raw = int((FRAME_RAW + INPUT_RAW) / 2) * (INPUT_RAW / FRAME_RAW)
-            yolov5TRT.plot_one_box([start_raw, start_col, end_raw, end_col], image_raw, [150, 150, 150], label="", )
 
     # 计算谁离中心近
     for isb in range(inde):
@@ -441,22 +412,10 @@ if __name__ == "__main__":
             begin = time.time() # 计时开始
 
             frame = buffer.get_frame()   # 获取相机图像
-
-            input_frame = None
-            if FOCUSING_MODEL:
-                start_col, end_col = int((frame.shape[0] - INPUT_COL) / 2), int((frame.shape[0] + INPUT_COL) / 2)
-                start_raw, end_raw = int((frame.shape[1] - INPUT_RAW) / 2), int((frame.shape[1] + INPUT_RAW) / 2)
-                input_frame = frame[start_col:end_col, start_raw:end_raw, :]                               # 裁切图像用于聚焦识别
-            else:
-                input_frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
-                frame = input_frame
-
-            result = yolov5_wrapper.infer(input_frame)                                                     # 用YOLOv5检测目标
+            frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+            result = yolov5_wrapper.infer(frame)                                                           # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                               # 得到敌军的boxes信息
-            if FOCUSING_MODEL:
-                result_boxes = scale_boxes(result_boxes)                                                   # 将结果还原到原图像
-                frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
             
             trans_detect_data(ser, result_boxes, frame)                                                    # 发送检测结果
 
