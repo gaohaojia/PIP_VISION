@@ -1,3 +1,6 @@
+"""
+该文件被main.py文件调用，返回由yolov5模型预测出来的目标信息。
+"""
 import random
 import threading
 import cv2

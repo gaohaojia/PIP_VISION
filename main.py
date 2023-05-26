@@ -1,7 +1,9 @@
+"""
+该文件为主运行文件。
+"""
 import ctypes
 import time
 import cv2
-import torch
 import numpy as np
 import argparse
 import serial
@@ -9,6 +11,7 @@ import os
 import threading
 
 from cam_conf import init_camera
+from check_friends import check_friends
 import yolov5TRT
 
 CONF_THRESH = 0.5
@@ -74,6 +77,19 @@ class boxes():
         self.scores = scores     # boxes的置信度
         self.classid = classid   # boxes的id
 
+class data():
+    """
+    description: 用于存储被检测目标的各种信息。
+    """
+    def __init__(self, now_x=0, now_y=0, last_x=0, last_y=0, delta_x=0, delta_y=0, distance=0):
+        self.now_x = now_x
+        self.now_y = now_y
+        self.last_x = last_x
+        self.last_y = last_y
+        self.delta_x = delta_x
+        self.delta_y = delta_y
+        self.distance = distance
+
 def get_ser(port, baudrate, timeout):
     """
     description: Linux系统使用com1口连接串行口。
@@ -101,59 +117,34 @@ def get_transdata_from_10b(transdata):
     b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
     return [b16s[:2], b16s[2:]]
 
-def trans_detect_data(ser, result_boxes, image_raw):
+def calculate_data(result_boxes, detect_data):
     """
-    description: 将detect的信息与电控通讯。
+    description: 计算测量结果。
     param:
-        ser:             串口信息。
-        result_boxes:    boxes类。
-        image_raw:       标注后的图片。
+        result_boxes:   boxes类。
+        detect_data:    识别的目标信息，data类。
+    result:
+        输出计算后的detect_data和距离中心最近的box的索引。
     """
-    # 计算处理时间
-    side2 = time.time()
     boxes_np = np.array(result_boxes.boxes)
-    inde = boxes_np.shape[0]
-    numlist = []
+    np_list = np.array([]) # 用于保存每一个boxes距离中心的距离
 
     # 计算谁离中心近
-    for isb in range(inde):
-        numlist.append(
-            float(((boxes_np[isb][0] + boxes_np[isb][2]) / 2 - (INPUT_RAW / 2)) ** 2 + ((boxes_np[isb][1] + boxes_np[isb][3]) - (INPUT_COL / 2)) ** 2))
-    mindex = -1
-    if len(numlist) == 0:
-        mindex = -1
-    else:
-        mindex = np.argmin(numlist)
+    for isb in range(boxes_np.shape[0]):
+        np_list = np.append(np_list, 
+                            float(((boxes_np[isb][0] + boxes_np[isb][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
+                            ((boxes_np[isb][1] + boxes_np[isb][3]) - (INPUT_COL / 2)) ** 2))
+    minBox_idx = np.argmin(np_list) if np_list else -1 # 获取距离中心最近的boxes的索引
 
     # 距离运算
     try:
-        global pre_x, pre_y
-        x_now = int((boxes_np[mindex][0] + boxes_np[mindex][2]) / 2)
-        y_now = int((boxes_np[mindex][1] + boxes_np[mindex][3]) / 2)
-        x_1, x_2 = get_transdata_from_10b((x_now))
-        y_1, y_2 = get_transdata_from_10b((y_now))
-        detax = x_now - pre_x
-        detay = y_now - pre_y
-        # 计算欧氏距离
-        xx_1, xx_2 = get_transdata_from_10b((int(pre_x + detax / 2)))
-        yy_1, yy_2 = get_transdata_from_10b((int(pre_y + detay / 2)))
-        deta_dis = np.sqrt((detay ** 2 + detax ** 2))
-        # 根据距离和时间步长推测速度
-        speed_1, speed_2 = get_transdata_from_10b(int(500 * pre_time))
-        pre_x = x_now
-        pre_y = y_now
-        if RUN_MODE:
-            print(x_1, x_2, xx_1, xx_2)
+        detect_data.x_now = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
+        detect_data.y_now = int((boxes_np[minBox_idx][1] + boxes_np[minBox_idx][3]) / 2)
+        detect_data.delta_x = detect_data.x_now - detect_data.last_x
+        detect_data.delta_y = detect_data.y_now - detect_data.last_y
     except:
-        if RUN_MODE:
-            print("Wrong Trans!")
+        print("Wrong Calculate!")
 
-    side3 = time.time()
-    if RUN_MODE:
-        print(f"Side3 Time: \t{(side3 - side2) * 1000:.3f}")
-
-    tag_size = 0.05
-    tag_size_half = 0.02
     half_Weight = [229 / 4, 152 / 4]
     half_Height = [126 / 4, 142 / 4]
 
@@ -170,46 +161,45 @@ def trans_detect_data(ser, result_boxes, image_raw):
 
     cameraMatrix = K
     distCoeffs = None
-
-    side4 = time.time()
-    if RUN_MODE:
-        print(f"Side4 Time: \t{(side4 - side3) * 1000:.3f}")
     
-    if mindex != -1:
-        box = result_boxes.boxes[mindex]
+    if minBox_idx != -1:
+        box = result_boxes.boxes[minBox_idx]
 
         imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
                              dtype=np.float64)
-        if mindex % 4 == 0:
-            idn = 0
-        else:
-            idn = 1
+        idn = 0 if minBox_idx % 4 == 0 else 1
         objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
                               [half_Weight[idn], -half_Height[idn], 0],
                               [half_Weight[idn], half_Height[idn], 0],
                               [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
         retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
 
-        distance = np.linalg.norm(tvec)
-
-        
-        if box:
-            yolov5TRT.plot_one_box(box, image_raw,
-                                   label="{}:{:.2f}".format(categories[int(result_boxes.classid[mindex])], 
-                                   result_boxes.scores[mindex]), )
-
+        '''
         rvec_matrix = cv2.Rodrigues(rvec)[0]
         proj_matrix = np.hstack((rvec_matrix, rvec))
         eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
         pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
-        distance = str(int(distance / 10))
-        if RUN_MODE:
-            print(f"pryd{pitch}, {yaw}, {roll}, {distance}")
+        '''
+        detect_data.distance = str(int(np.linalg.norm(tvec) / 10))
+        
+    return detect_data, minBox_idx
 
-        dis_1, dis_2 = get_transdata_from_10b((int(distance)))
-    zero11, zero2 = get_transdata_from_10b(0)
+def trans_detect_data(ser, detect_data):
+    """
+    description: 将detect_data的信息与电控通讯。
+    param:
+        ser:             串口信息。
+        detect_data:     计算后的数据，data类。
+    """
+    x_1, x_2 = get_transdata_from_10b((detect_data.x_now))
+    y_1, y_2 = get_transdata_from_10b((detect_data.y_now))
+    xx_1, xx_2 = get_transdata_from_10b((int(detect_data.last_x + detect_data.delta_x / 2)))
+    yy_1, yy_2 = get_transdata_from_10b((int(detect_data.last_y + detect_data.delta_y / 2)))
+    speed_1, speed_2 = get_transdata_from_10b(int(500 * pre_time))
+    dis_1, dis_2 = get_transdata_from_10b((int(detect_data.distance)))
+    ZERO1, _ = get_transdata_from_10b(0)
 
-    # 串口进行数据传输,传输距离，坐标，预测速度
+    # 串口进行数据传输，传输距离，坐标，预测速度
     ser.write(b'\x45')
     try:
         ser.write(bytes.fromhex(dis_1))  # x-mid
@@ -221,135 +211,14 @@ def trans_detect_data(ser, result_boxes, image_raw):
         ser.write(bytes.fromhex(speed_1))  # x-mid
         ser.write(bytes.fromhex(speed_2))
     except:
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-    
-    side5 = time.time()
-    if RUN_MODE:
-        print(f"Side5 Time: \t{(side5 - side4) * 1000:.3f}")
-
-class check_friends():
-    """
-    description: 检测友军
-    """
-    def __init__(self, ser, color):
-        """
-        description: 初始化变量以及尝试获取友军信息。
-        param:
-            ser:    串口信息。
-        """
-        self.color = color
-        self.friends = []
-        self.check_fr = 0
-
-        # 尝试10次通讯获取，防止1次获取失败。
-        for i in range(10):
-            if (self.check_fr):
-                break
-            self.get_color_and_friends(ser)
-
-    def get_color_and_friends(self, ser):
-        """
-        description: 与电控通讯，获取友军颜色与友军id。
-        param:
-            ser:    串口信息。
-        """
-        try:
-            ser.write(b'\x45')
-        except:
-            print("Wrong Open Serial!")
-        
-        # TODO:还需要添加风车的编号，已经打过的风车和灰色风车都标记为友军
-        # TODO:目前的想法：1.红蓝色已击打看作一个标签进行训练识别   2.红蓝色已击打分为两类训练识别
-
-        if RUN_MODE:
-            print(f"Recieve: {ser.read()}")
-        # 根据我方红蓝方的设定，进行友军识别
-        if ser.read() == b'\xff' or self.color == 1:
-            self.color = 1  # red
-            self.friends = [0, 3, 6, 9, 12, 15] if ENGINE_VERSION == 7 else [0, 1, 2, 3]
-        elif ser.read() == b'\xaa' or self.color == 2:
-            self.color = 2  # blue
-            self.friends = [1, 4, 7, 10, 13, 16] if ENGINE_VERSION == 7 else [4, 5, 6, 7]
-        if RUN_MODE:
-            print(f"Friend id: {self.friends}") if self.friends else print("No friend id!")
-
-        # 如果是友军而且友军列表成功添加，那么友军标记边变1，并且友军列表添加死亡的敌人
-        fr = []
-        if self.check_fr == 0 and self.friends:
-            fr = self.friends
-            self.check_fr = 1
-        self.friends_list = fr + ([2, 5, 8, 11, 14, 17, 19, 20, 21] if ENGINE_VERSION == 7 else [8, 9, 10, 11])
-
-    def get_nonfriend_from_all(self, all, friends):
-        """
-        description: 获取非友军相关参数。
-        param:
-            all:    全部参数。
-            friend: 友军参数。
-        return:
-            非友军参数。
-        """
-        new = []
-        for i in all.numpy().tolist():
-            if i not in (friends):
-                new.append(i)
-        return torch.tensor(new)
-
-    def get_enemy_info(self, result_boxes):
-        """
-        description: 处理识别的box，输出敌军的box信息。
-        param:
-            result_boxes:    boxes类。
-        return:
-            只含敌军的boxes类。
-        """
-        # 分别代表友军的box、box置信度、box的id
-        exit_friends_boxes = []
-        exit_friends_scores = []
-        exit_friends_id = []
-        friends_id = []
-        for ii in range(len(result_boxes.classid)):
-            if int(result_boxes.classid.numpy()[ii]) in self.friends_list:
-                friends_id.append(int(result_boxes.classid.numpy()[ii]))
-                exit_friends_boxes.append(result_boxes.boxes[ii])
-                exit_friends_scores.append(result_boxes.scores[ii])
-                exit_friends_id.append(result_boxes.classid[ii])
-        if RUN_MODE:
-            print(f"Friend Id: {friends_id}") if friends_id else print("No friend id!")
-        enemy_list_index = []
-
-        # 获取敌军的列表以及id
-        try:
-            for i in result_boxes.classid.numpy():
-                if int(i) not in friends_id:
-                    dex_tem = ((np.where(result_boxes.classid.numpy() == i))[0][0])
-                    enemy_list_index.append(dex_tem)
-        except:
-            "g"
-
-        if RUN_MODE:
-            print(f"Enemy Id: {enemy_list_index}") if enemy_list_index else print("No enemy id!")
-
-        ourbox = []
-        for dex in enemy_list_index:
-            ourbox.append(result_boxes.boxes[dex].numpy())
-
-        result_boxes.boxes = ourbox
-        result_boxes.scores = self.get_nonfriend_from_all(result_boxes.scores, exit_friends_scores)  # 置信度处理
-        result_boxes.classid = self.get_nonfriend_from_all(result_boxes.classid, exit_friends_id)    # id处理
-
-        if RUN_MODE:
-            print(f"Nowboxes: {result_boxes.boxes}")
-            print(f"Nowscore: {result_boxes.scores}")
-            print(f"Nowid: {result_boxes.classid}")
-        return result_boxes
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
     
 class listening_ser(threading.Thread):
     """
@@ -405,7 +274,7 @@ if __name__ == "__main__":
     listening_thread = listening_ser()  # 运行监听线程
     listening_thread.start()
     '''
-    
+    detect_data = data() # 初始化数据信息
     # 循环检测目标与发送信息
     while 1:
         try:
@@ -417,7 +286,16 @@ if __name__ == "__main__":
             result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                               # 得到敌军的boxes信息
             
-            trans_detect_data(ser, result_boxes, frame)                                                    # 发送检测结果
+            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                            # 计算测量结果
+            trans_detect_data(ser, detect_data)                                                            # 发送检测结果
+
+            detect_data.last_x = detect_data.x_now                                                         # 刷新数据
+            detect_data.last_y = detect_data.y_now
+
+            if minBox_idx != -1:                                                                           # 在图片上绘制检测框
+                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], frame,
+                                       label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
+                                       result_boxes.scores[minBox_idx]), )
 
             end = time.time()          # 结束计时
             pre_time = (end - begin)   # 统计用时

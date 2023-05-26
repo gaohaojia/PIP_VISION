@@ -1,3 +1,6 @@
+"""
+该文件被main.py调用，借助官方sdk初始化摄像头。
+"""
 import sys
 import numpy as np
 import cv2

@@ -24,6 +24,7 @@ PIP战队视觉组源码仓库。
 PIP_VISION
 |-- main.py
 |-- yolov5TRT.py
+|-- check_friends.py
 |-- pyd.sh
 |-- README.md
 |-- requirements.txt
