@@ -36,11 +36,6 @@ ENGINE_VERSION = 7
     5: YOLOv5模型。
     7: YOLOv7模型。
 """
-FOCUSING_MODEL = False
-"""
-聚焦模式:
-    启用后目标仅检测图像中心附近的目标。
-"""
 FRAME_RAW, FRAME_COL = 1280, 1024
 """
 相机大小:
@@ -250,20 +245,16 @@ if __name__ == "__main__":
                         default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
     parser.add_argument('--color', nargs='+', type=int, default=1, help='Friend\'s color, 1 is red (default), 2 is blue.')
     parser.add_argument('--mode', nargs='+', type=str, default="debug", help='Running mode. debug (default) or release.')
-    parser.add_argument('--focusing', nargs='+', type=bool, default=False, help='Is activate focusing model. Default False.')
     opt = parser.parse_args()
     RUN_MODE = 1 if opt.mode == "debug" else 0
     ctypes.CDLL(opt.library)
     ENGINE_FILE_PATH = opt.engine
     ENGINE_VERSION = opt.version
-    FOCUSING_MODEL = opt.focusing
     categories = categories7 if ENGINE_VERSION == 7 else categories5
 
     if RUN_MODE:
         print("Debug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
-        if FOCUSING_MODEL:
-            print("Focusing model activated.")
 
     buffer = init_camera.buffer()
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
