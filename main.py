@@ -259,7 +259,7 @@ if __name__ == "__main__":
     buffer = init_camera.buffer()
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
-    check_friend_wrapper = check_friends(ser, opt.color)                                      # 初始化友军检测类
+    check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
     ''' 待与电控测试
     listening_thread = listening_ser()  # 运行监听线程
