@@ -148,7 +148,7 @@ def calculate_data(result_boxes, detect_data):
     cameraMatrix = K
     distCoeffs = None
     
-        # 距离运算
+    # 距离运算
     try:
         if minBox_idx != -1:
             detect_data.now_x = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
