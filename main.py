@@ -133,10 +133,10 @@ def calculate_data(result_boxes, detect_data):
 
     # 距离运算
     try:
-        detect_data.x_now = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
-        detect_data.y_now = int((boxes_np[minBox_idx][1] + boxes_np[minBox_idx][3]) / 2)
-        detect_data.delta_x = detect_data.x_now - detect_data.last_x
-        detect_data.delta_y = detect_data.y_now - detect_data.last_y
+        detect_data.now_x = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
+        detect_data.now_y = int((boxes_np[minBox_idx][1] + boxes_np[minBox_idx][3]) / 2)
+        detect_data.delta_x = detect_data.now_x - detect_data.last_x
+        detect_data.delta_y = detect_data.now_y - detect_data.last_y
     except:
         print("Wrong Calculate!")
 
@@ -186,8 +186,8 @@ def trans_detect_data(ser, detect_data):
         ser:             串口信息。
         detect_data:     计算后的数据，data类。
     """
-    x_1, x_2 = get_transdata_from_10b((detect_data.x_now))
-    y_1, y_2 = get_transdata_from_10b((detect_data.y_now))
+    x_1, x_2 = get_transdata_from_10b((detect_data.now_x))
+    y_1, y_2 = get_transdata_from_10b((detect_data.now_y))
     xx_1, xx_2 = get_transdata_from_10b((int(detect_data.last_x + detect_data.delta_x / 2)))
     yy_1, yy_2 = get_transdata_from_10b((int(detect_data.last_y + detect_data.delta_y / 2)))
     speed_1, speed_2 = get_transdata_from_10b(int(500 * pre_time))
@@ -280,8 +280,8 @@ if __name__ == "__main__":
             detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                            # 计算测量结果
             trans_detect_data(ser, detect_data)                                                            # 发送检测结果
 
-            detect_data.last_x = detect_data.x_now                                                         # 刷新数据
-            detect_data.last_y = detect_data.y_now
+            detect_data.last_x = detect_data.now_x                                                         # 刷新数据
+            detect_data.last_y = detect_data.now_y
 
             if minBox_idx != -1:                                                                           # 在图片上绘制检测框
                 yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], frame,
