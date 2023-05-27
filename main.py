@@ -131,15 +131,6 @@ def calculate_data(result_boxes, detect_data):
                             ((boxes_np[isb][1] + boxes_np[isb][3]) - (INPUT_COL / 2)) ** 2))
     minBox_idx = np.argmin(np_list) if np_list else -1 # 获取距离中心最近的boxes的索引
 
-    # 距离运算
-    try:
-        detect_data.now_x = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
-        detect_data.now_y = int((boxes_np[minBox_idx][1] + boxes_np[minBox_idx][3]) / 2)
-        detect_data.delta_x = detect_data.now_x - detect_data.last_x
-        detect_data.delta_y = detect_data.now_y - detect_data.last_y
-    except:
-        print("Wrong Calculate!")
-
     half_Weight = [229 / 4, 152 / 4]
     half_Height = [126 / 4, 142 / 4]
 
@@ -157,25 +148,34 @@ def calculate_data(result_boxes, detect_data):
     cameraMatrix = K
     distCoeffs = None
     
-    if minBox_idx != -1:
-        box = result_boxes.boxes[minBox_idx]
+        # 距离运算
+    try:
+        if minBox_idx != -1:
+            detect_data.now_x = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
+            detect_data.now_y = int((boxes_np[minBox_idx][1] + boxes_np[minBox_idx][3]) / 2)
+            detect_data.delta_x = detect_data.now_x - detect_data.last_x
+            detect_data.delta_y = detect_data.now_y - detect_data.last_y
 
-        imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
-                             dtype=np.float64)
-        idn = 0 if minBox_idx % 4 == 0 else 1
-        objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
-                              [half_Weight[idn], -half_Height[idn], 0],
-                              [half_Weight[idn], half_Height[idn], 0],
-                              [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
-        retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
+            box = result_boxes.boxes[minBox_idx]
 
-        '''
-        rvec_matrix = cv2.Rodrigues(rvec)[0]
-        proj_matrix = np.hstack((rvec_matrix, rvec))
-        eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
-        pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
-        '''
-        detect_data.distance = str(int(np.linalg.norm(tvec) / 10))
+            imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
+                                dtype=np.float64)
+            idn = 0 if minBox_idx % 4 == 0 else 1
+            objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
+                                [half_Weight[idn], -half_Height[idn], 0],
+                                [half_Weight[idn], half_Height[idn], 0],
+                                [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
+            retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
+
+            '''
+            rvec_matrix = cv2.Rodrigues(rvec)[0]
+            proj_matrix = np.hstack((rvec_matrix, rvec))
+            eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
+            pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
+            '''
+            detect_data.distance = str(int(np.linalg.norm(tvec) / 10))
+    except:
+        print("Wrong Calculate!")
         
     return detect_data, minBox_idx
 
