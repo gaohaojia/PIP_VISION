@@ -176,12 +176,6 @@ def calculate_data(result_boxes, detect_data):
     
     minBox_idx = dis_list.index(min(dis_list)) if dis_list else -1 # 获取标准差最小boxes的索引
 
-    """
-    下面进行的操作就是把现实世界3D坐标系的点位，通过相机内参得到2D平面上的点位
-    可以看看这篇文章，写的还不错https://www.jianshu.com/p/1bf329da535b
-    归根结底还是距离和速度的预测推算
-    """
-
     detect_data.last_x = detect_data.now_x     # 刷新数据
     detect_data.last_y = detect_data.now_y
 
@@ -190,6 +184,12 @@ def calculate_data(result_boxes, detect_data):
 
         detect_data.now_x = int((box[0] + box[2]) / 2)      # 计算当前帧x
         detect_data.now_y = int((box[1] + box[3]) / 2)      # 计算当前帧y
+
+        """
+        下面进行的操作就是把现实世界3D坐标系的点位，通过相机内参得到2D平面上的点位
+        可以看看这篇文章，写的还不错https://www.jianshu.com/p/1bf329da535b
+        归根结底还是距离和速度的预测推算
+        """
 
         imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
                             dtype=np.float64)
