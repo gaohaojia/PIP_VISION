@@ -46,8 +46,12 @@ INPUT_RAW, INPUT_COL = 640, 480
 检测大小:
     模型检测时的输入图像。
 """
+TOLERANT_VALUE = 30
+"""
+容错值:
+    预测坐标的容错范围（像素）。
+"""
 
-pre_time = 0.1 # 每帧所需时间
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
 
 # 标签列表
@@ -68,22 +72,36 @@ class boxes():
     description: 用于存储boxes各种信息的类。
     """
     def __init__(self, boxes, scores, classid):
-        self.boxes = boxes       # boxes位置信息
-        self.scores = scores     # boxes的置信度
-        self.classid = classid   # boxes的id
+        """
+        param:
+            boxes:   boxes位置信息。
+            scores:  boxes的置信度。
+            classid: boxes的id。
+        """
+        self.boxes = boxes      
+        self.scores = scores    
+        self.classid = classid  
 
 class data():
     """
     description: 用于存储被检测目标的各种信息。
     """
-    def __init__(self, now_x=0, now_y=0, last_x=0, last_y=0, delta_x=0, delta_y=0, distance=0):
+    def __init__(self, now_x=0, now_y=0, last_x=0, last_y=0, distance=0, pre_time=0):
+        """
+        param:
+            now_x:     当前帧的x坐标。
+            now_y:     当前帧的y坐标。
+            last_x:    上一帧的x坐标。
+            last_y:    上一帧的y坐标。
+            distance:  距离。
+            pre_time:  每帧所需时间。
+        """
         self.now_x = now_x
         self.now_y = now_y
         self.last_x = last_x
         self.last_y = last_y
-        self.delta_x = delta_x
-        self.delta_y = delta_y
         self.distance = distance
+        self.pre_time = pre_time
 
 def get_ser(port, baudrate, timeout):
     """
@@ -125,11 +143,17 @@ def calculate_data(result_boxes, detect_data):
     np_list = np.array([]) # 用于保存每一个boxes距离中心的距离
 
     # 计算谁离中心近
-    for isb in range(boxes_np.shape[0]):
-        np_list = np.append(np_list, 
-                            float(((boxes_np[isb][0] + boxes_np[isb][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
-                            ((boxes_np[isb][1] + boxes_np[isb][3]) - (INPUT_COL / 2)) ** 2))
-    minBox_idx = np.argmin(np_list) if np_list else -1 # 获取距离中心最近的boxes的索引
+    delta_x = detect_data.now_x - detect_data.last_x
+    delta_y = detect_data.now_y - detect_data.last_y
+    if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2:
+        pre_x = detect_data.now_x + delta_x
+        pre_y = detect_data.now_y + delta_y
+        np_list = np.append(float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - pre_x) ** 2 + 
+                            ((boxes_np[i][1] + boxes_np[i][3]) / 2 - pre_y) ** 2) for i in range(boxes_np.shape[0]))
+    else:
+        np_list = np.append(float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
+                            ((boxes_np[i][1] + boxes_np[i][3]) / 2 - (INPUT_COL / 2)) ** 2) for i in range(boxes_np.shape[0]))
+    minBox_idx = np.argmin(np_list) if np_list else -1 # 获取距离目标最近的boxes的索引
 
     half_Weight = [229 / 4, 152 / 4]
     half_Height = [126 / 4, 142 / 4]
@@ -151,10 +175,10 @@ def calculate_data(result_boxes, detect_data):
     # 距离运算
     try:
         if minBox_idx != -1:
+            detect_data.last_x = detect_data.now_x                                                         # 刷新数据
+            detect_data.last_y = detect_data.now_y
             detect_data.now_x = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
             detect_data.now_y = int((boxes_np[minBox_idx][1] + boxes_np[minBox_idx][3]) / 2)
-            detect_data.delta_x = detect_data.now_x - detect_data.last_x
-            detect_data.delta_y = detect_data.now_y - detect_data.last_y
 
             box = result_boxes.boxes[minBox_idx]
 
@@ -188,9 +212,7 @@ def trans_detect_data(ser, detect_data):
     """
     x_1, x_2 = get_transdata_from_10b((detect_data.now_x))
     y_1, y_2 = get_transdata_from_10b((detect_data.now_y))
-    xx_1, xx_2 = get_transdata_from_10b((int(detect_data.last_x + detect_data.delta_x / 2)))
-    yy_1, yy_2 = get_transdata_from_10b((int(detect_data.last_y + detect_data.delta_y / 2)))
-    speed_1, speed_2 = get_transdata_from_10b(int(500 * pre_time))
+    speed_1, speed_2 = get_transdata_from_10b(int(0.5 * detect_data.pre_time))
     dis_1, dis_2 = get_transdata_from_10b((int(detect_data.distance)))
     ZERO1, _ = get_transdata_from_10b(0)
 
@@ -280,21 +302,18 @@ if __name__ == "__main__":
             detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                            # 计算测量结果
             trans_detect_data(ser, detect_data)                                                            # 发送检测结果
 
-            detect_data.last_x = detect_data.now_x                                                         # 刷新数据
-            detect_data.last_y = detect_data.now_y
-
             if minBox_idx != -1:                                                                           # 在图片上绘制检测框
                 yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], frame,
                                        label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
                                        result_boxes.scores[minBox_idx]), )
 
-            end = time.time()          # 结束计时
-            pre_time = (end - begin)   # 统计用时
-
-            cv2.waitKey(1)
-            cv2.imshow("result", frame)                 # 显示图像输出
-            if RUN_MODE:
-                print(f"Frame Time: {pre_time * 1000}ms")   # 输出用时
-
+            end = time.time()                                     # 结束计时
+            detect_data.pre_time = (end - begin) * 1000           # 统计用时
+ 
+            cv2.waitKey(1) 
+            cv2.imshow("result", frame)                           # 显示图像输出
+            if RUN_MODE: 
+                print(f"Frame Time: {detect_data.pre_time}ms")    # 输出用时
+ 
         except Exception as e:
             print(e)
