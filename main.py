@@ -321,7 +321,7 @@ if __name__ == "__main__":
             detect_data.pre_time = (end - begin) * 1000           # 统计用时
  
             cv2.waitKey(1) 
-            cv2.imshow("result", frame)                           # 显示图像输出
+            cv2.imshow("Result", frame)                           # 显示图像输出
             if RUN_MODE: 
                 print(f"Frame Time: {detect_data.pre_time}ms")    # 输出用时
  
