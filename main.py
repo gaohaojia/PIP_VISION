@@ -142,17 +142,18 @@ def calculate_data(result_boxes, detect_data):
     boxes_np = np.array(result_boxes.boxes)
     dis_list = [] # 用于保存每一个boxes距离中心的距离
 
-    # 计算谁离中心近
-    delta_x = detect_data.now_x - detect_data.last_x
-    delta_y = detect_data.now_y - detect_data.last_y
-    if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.last_x != -1 and detect_data.now_x != -1:
-        pre_x = detect_data.now_x + delta_x
-        pre_y = detect_data.now_y + delta_y
-        dis_list = (float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - pre_x) ** 2 + 
-                            ((boxes_np[i][1] + boxes_np[i][3]) / 2 - pre_y) ** 2) for i in range(boxes_np.shape[0]))
-    else:
-        dis_list = (float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
-                            ((boxes_np[i][1] + boxes_np[i][3]) / 2 - (INPUT_COL / 2)) ** 2) for i in range(boxes_np.shape[0]))
+    if boxes_np:
+        # 计算谁离中心近
+        delta_x = detect_data.now_x - detect_data.last_x
+        delta_y = detect_data.now_y - detect_data.last_y
+        if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.last_x != -1 and detect_data.now_x != -1:
+            pre_x = detect_data.now_x + delta_x
+            pre_y = detect_data.now_y + delta_y
+            dis_list = (float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - pre_x) ** 2 + 
+                                ((boxes_np[i][1] + boxes_np[i][3]) / 2 - pre_y) ** 2) for i in range(boxes_np.shape[0]))
+        else:
+            dis_list = (float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
+                                ((boxes_np[i][1] + boxes_np[i][3]) / 2 - (INPUT_COL / 2)) ** 2) for i in range(boxes_np.shape[0]))
     minBox_idx = np.argmin(dis_list) if dis_list else -1 # 获取距离目标最近的boxes的索引
 
     half_Weight = [229 / 4, 152 / 4]
@@ -176,7 +177,7 @@ def calculate_data(result_boxes, detect_data):
     try:
         detect_data.last_x = detect_data.now_x     # 刷新数据
         detect_data.last_y = detect_data.now_y
-        
+
         if minBox_idx != -1:
             box = result_boxes.boxes[minBox_idx]
 
