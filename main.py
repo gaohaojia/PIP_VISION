@@ -149,11 +149,11 @@ def calculate_data(result_boxes, detect_data):
         if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.last_x != -1 and detect_data.now_x != -1:
             pre_x = detect_data.now_x + delta_x
             pre_y = detect_data.now_y + delta_y
-            dis_list = (float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - pre_x) ** 2 + 
-                                ((boxes_np[i][1] + boxes_np[i][3]) / 2 - pre_y) ** 2) for i in range(boxes_np.shape[0]))
+            dis_list = [float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - pre_x) ** 2 + 
+                                ((boxes_np[i][1] + boxes_np[i][3]) / 2 - pre_y) ** 2) for i in range(boxes_np.shape[0])]
         else:
-            dis_list = (float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
-                                ((boxes_np[i][1] + boxes_np[i][3]) / 2 - (INPUT_COL / 2)) ** 2) for i in range(boxes_np.shape[0]))
+            dis_list = [float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
+                                ((boxes_np[i][1] + boxes_np[i][3]) / 2 - (INPUT_COL / 2)) ** 2) for i in range(boxes_np.shape[0])]
     
     minBox_idx = dis_list.index(min(dis_list)) if dis_list else -1 # 获取距离目标最近的boxes的索引
 
