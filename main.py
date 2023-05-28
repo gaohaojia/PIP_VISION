@@ -172,13 +172,14 @@ def calculate_data(result_boxes, detect_data):
     cameraMatrix = K
     distCoeffs = None
 
-    box = result_boxes.boxes[minBox_idx]
-
     # 距离运算
     try:
         detect_data.last_x = detect_data.now_x     # 刷新数据
         detect_data.last_y = detect_data.now_y
+        
         if minBox_idx != -1:
+            box = result_boxes.boxes[minBox_idx]
+
             detect_data.now_x = int((box[0] + box[2]) / 2)
             detect_data.now_y = int((box[1] + box[3]) / 2)
 
