@@ -54,6 +54,17 @@ TOLERANT_VALUE = 30
 
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
 
+# 一些相机参数常量，用于计算显示距离
+fx = 1056.4967111
+fy = 1056.6221413136
+cx = 657.4915775667
+cy = 508.2778608
+xxx = -0.392652606
+cameraMatrix = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # 相机内参矩阵
+distCoeffs = None
+half_Weight = [229 / 4, 152 / 4]
+half_Height = [126 / 4, 142 / 4]
+
 # 标签列表
 categories5 = ["armor1red", "armor3red", "armor4red", "armor5red",           
               "armor1blue", "armor3blue", "armor4blue",
@@ -142,72 +153,64 @@ def calculate_data(result_boxes, detect_data):
     dis_list = [] # 用于保存每一个boxes距离中心的距离
 
     if result_boxes.boxes:
-        # 计算谁离中心近
+
+        # 计算与前一帧的偏移
         delta_x = detect_data.now_x - detect_data.last_x
         delta_y = detect_data.now_y - detect_data.last_y
+
+        # 判断偏移量是否在容忍范围内
         if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.last_x != -1 and detect_data.now_x != -1:
+
+            # 计算与预测值之间的标准差
             pre_x = detect_data.now_x + delta_x
             pre_y = detect_data.now_y + delta_y
             dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - pre_x) ** 2 + 
                               ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - pre_y) ** 2) 
                               for i in range(result_boxes.boxes.shape[0])]
         else:
+
+            # 计算与图像中心之间的标准差
             dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
                               ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - (INPUT_COL / 2)) ** 2) 
                               for i in range(result_boxes.boxes.shape[0])]
     
-    minBox_idx = dis_list.index(min(dis_list)) if dis_list else -1 # 获取距离目标最近的boxes的索引
+    minBox_idx = dis_list.index(min(dis_list)) if dis_list else -1 # 获取标准差最小boxes的索引
 
-    half_Weight = [229 / 4, 152 / 4]
-    half_Height = [126 / 4, 142 / 4]
+    """
+    下面进行的操作就是把现实世界3D坐标系的点位，通过相机内参得到2D平面上的点位
+    可以看看这篇文章，写的还不错https://www.jianshu.com/p/1bf329da535b
+    归根结底还是距离和速度的预测推算
+    """
 
-    # 下面进行的操作就是把现实世界3D坐标系的点位，通过相机内参得到2D平面上的点位
-    # 可以看看这篇文章，写的还不错https://www.jianshu.com/p/1bf329da535b
-    # 归根结底还是距离和速度的预测推算
+    detect_data.last_x = detect_data.now_x     # 刷新数据
+    detect_data.last_y = detect_data.now_y
 
-    fx = 1056.4967111
-    fy = 1056.6221413136
-    cx = 657.4915775667
-    cy = 508.2778608
-    xxx = -0.392652606
-    K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # 相机内参矩阵
+    if minBox_idx != -1:
+        box = result_boxes.boxes[minBox_idx]                # 获取box
 
-    cameraMatrix = K
-    distCoeffs = None
+        detect_data.now_x = int((box[0] + box[2]) / 2)      # 计算当前帧x
+        detect_data.now_y = int((box[1] + box[3]) / 2)      # 计算当前帧y
 
-    # 距离运算
-    try:
-        detect_data.last_x = detect_data.now_x     # 刷新数据
-        detect_data.last_y = detect_data.now_y
+        imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
+                            dtype=np.float64)
+        idn = 0 if minBox_idx % 4 == 0 else 1
+        objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
+                              [ half_Weight[idn], -half_Height[idn], 0],
+                              [ half_Weight[idn],  half_Height[idn], 0],
+                              [-half_Weight[idn],  half_Height[idn], 0]], dtype=np.float64)
+        retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
 
-        if minBox_idx != -1:
-            box = result_boxes.boxes[minBox_idx]
+        '''
+        rvec_matrix = cv2.Rodrigues(rvec)[0]
+        proj_matrix = np.hstack((rvec_matrix, rvec))
+        eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
+        pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
+        '''
+        detect_data.distance = str(int(np.linalg.norm(tvec) / 10))
+    else:
+        detect_data.now_x = -1     # 未识别出box，则初始化当前帧x，y
+        detect_data.now_y = -1
 
-            detect_data.now_x = int((box[0] + box[2]) / 2)
-            detect_data.now_y = int((box[1] + box[3]) / 2)
-
-            imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
-                                dtype=np.float64)
-            idn = 0 if minBox_idx % 4 == 0 else 1
-            objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
-                                [half_Weight[idn], -half_Height[idn], 0],
-                                [half_Weight[idn], half_Height[idn], 0],
-                                [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
-            retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
-
-            '''
-            rvec_matrix = cv2.Rodrigues(rvec)[0]
-            proj_matrix = np.hstack((rvec_matrix, rvec))
-            eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
-            pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
-            '''
-            detect_data.distance = str(int(np.linalg.norm(tvec) / 10))
-        else:
-            detect_data.now_x = -1
-            detect_data.now_y = -1
-    except:
-        print("Wrong Calculate!")
-        
     return detect_data, minBox_idx
 
 def trans_detect_data(ser, detect_data):
