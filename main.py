@@ -141,7 +141,7 @@ def calculate_data(result_boxes, detect_data):
     """
     dis_list = [] # 用于保存每一个boxes距离中心的距离
 
-    if boxes_np:
+    if result_boxes.boxes:
         # 计算谁离中心近
         delta_x = detect_data.now_x - detect_data.last_x
         delta_y = detect_data.now_y - detect_data.last_y
