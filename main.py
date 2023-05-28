@@ -154,7 +154,8 @@ def calculate_data(result_boxes, detect_data):
         else:
             dis_list = (float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
                                 ((boxes_np[i][1] + boxes_np[i][3]) / 2 - (INPUT_COL / 2)) ** 2) for i in range(boxes_np.shape[0]))
-    minBox_idx = np.argmin(dis_list) if dis_list else -1 # 获取距离目标最近的boxes的索引
+    
+    minBox_idx = dis_list.index(min(dis_list)) if dis_list else -1 # 获取距离目标最近的boxes的索引
 
     half_Weight = [229 / 4, 152 / 4]
     half_Height = [126 / 4, 142 / 4]
