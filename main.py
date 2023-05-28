@@ -86,7 +86,7 @@ class data():
     """
     description: 用于存储被检测目标的各种信息。
     """
-    def __init__(self, now_x=0, now_y=0, last_x=0, last_y=0, distance=0, pre_time=0):
+    def __init__(self, now_x=-1, now_y=-1, last_x=-1, last_y=-1, distance=-1, pre_time=-1):
         """
         param:
             now_x:     当前帧的x坐标。
@@ -145,7 +145,7 @@ def calculate_data(result_boxes, detect_data):
     # 计算谁离中心近
     delta_x = detect_data.now_x - detect_data.last_x
     delta_y = detect_data.now_y - detect_data.last_y
-    if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2:
+    if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.last_x != -1 and detect_data.now_x != -1:
         pre_x = detect_data.now_x + delta_x
         pre_y = detect_data.now_y + delta_y
         np_list = np.append(float(((boxes_np[i][0] + boxes_np[i][2]) / 2 - pre_x) ** 2 + 
@@ -171,16 +171,16 @@ def calculate_data(result_boxes, detect_data):
 
     cameraMatrix = K
     distCoeffs = None
-    
+
+    box = result_boxes.boxes[minBox_idx]
+
     # 距离运算
     try:
+        detect_data.last_x = detect_data.now_x     # 刷新数据
+        detect_data.last_y = detect_data.now_y
         if minBox_idx != -1:
-            detect_data.last_x = detect_data.now_x                                                         # 刷新数据
-            detect_data.last_y = detect_data.now_y
-            detect_data.now_x = int((boxes_np[minBox_idx][0] + boxes_np[minBox_idx][2]) / 2)
-            detect_data.now_y = int((boxes_np[minBox_idx][1] + boxes_np[minBox_idx][3]) / 2)
-
-            box = result_boxes.boxes[minBox_idx]
+            detect_data.now_x = int((box[0] + box[2]) / 2)
+            detect_data.now_y = int((box[1] + box[3]) / 2)
 
             imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
                                 dtype=np.float64)
@@ -198,6 +198,9 @@ def calculate_data(result_boxes, detect_data):
             pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
             '''
             detect_data.distance = str(int(np.linalg.norm(tvec) / 10))
+        else:
+            detect_data.now_x = -1
+            detect_data.now_y = -1
     except:
         print("Wrong Calculate!")
         
