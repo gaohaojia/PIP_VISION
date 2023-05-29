@@ -166,13 +166,13 @@ def calculate_data(result_boxes, detect_data):
             pre_y = detect_data.now_y + delta_y
             dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - pre_x) ** 2 + 
                               ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - pre_y) ** 2) 
-                              for i in range(result_boxes.boxes.shape[0])]
+                              for i in range(len(result_boxes.boxes))]
         else:
 
             # 计算与图像中心之间的标准差
             dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
                               ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - (INPUT_COL / 2)) ** 2) 
-                              for i in range(result_boxes.boxes.shape[0])]
+                              for i in range(len(result_boxes.boxes))]
     
     minBox_idx = dis_list.index(min(dis_list)) if dis_list else -1 # 获取标准差最小boxes的索引
 

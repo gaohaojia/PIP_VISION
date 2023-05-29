@@ -107,5 +107,5 @@ class check_friends():
         result_boxes.boxes = [result_boxes.boxes[i].tolist() for i in enemy_list_index]
         result_boxes.scores = self.get_nonfriend_from_all(result_boxes.scores, exit_friends_scores)  # 置信度处理
         result_boxes.classid = self.get_nonfriend_from_all(result_boxes.classid, exit_friends_id)    # id处理
-
+        
         return result_boxes
