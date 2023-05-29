@@ -93,8 +93,6 @@ class check_friends():
                 exit_friends_boxes.append(result_boxes.boxes[ii])
                 exit_friends_scores.append(result_boxes.scores[ii])
                 exit_friends_id.append(result_boxes.classid[ii])
-        if self.RUN_MODE:
-            print(f"Friend Id: {friends_id}") if friends_id else print("No friend id!")
         enemy_list_index = []
 
         # 获取敌军的列表以及id
@@ -104,17 +102,10 @@ class check_friends():
                     dex_tem = ((np.where(result_boxes.classid.numpy() == i))[0][0])
                     enemy_list_index.append(dex_tem)
         except:
-            "g"
-
-        if self.RUN_MODE:
-            print(f"Enemy Id: {enemy_list_index}") if enemy_list_index else print("No enemy id!")
+            pass
 
         result_boxes.boxes = [result_boxes.boxes[i].tolist() for i in enemy_list_index]
         result_boxes.scores = self.get_nonfriend_from_all(result_boxes.scores, exit_friends_scores)  # 置信度处理
         result_boxes.classid = self.get_nonfriend_from_all(result_boxes.classid, exit_friends_id)    # id处理
 
-        if self.RUN_MODE:
-            print(f"Nowboxes: {result_boxes.boxes}")
-            print(f"Nowscore: {result_boxes.scores}")
-            print(f"Nowid: {result_boxes.classid}")
         return result_boxes

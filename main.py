@@ -285,7 +285,7 @@ if __name__ == "__main__":
     categories = categories7 if ENGINE_VERSION == 7 else categories5
 
     if RUN_MODE:
-        print("Debug Mode.")
+        print("\r\nDebug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
 
     try:
