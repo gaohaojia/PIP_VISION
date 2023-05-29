@@ -34,6 +34,11 @@ PIP_VISION
     |-- build
         |-- best.engine
         |-- libmyplugins.so
+|-- images
+    |-- 000001.jpeg
+    |-- 000002.jpeg
+    |-- 000003.jpeg
+    |-- 000004.jpeg
 ```
 ## 快速使用
 在已经配好环境（[环境配置教程](https://github.com/gaohaojia/PIP_VISION/blob/%E8%B8%A9%E5%9D%91%E6%97%A5%E5%BF%97/%5B18.04%2B10.2%2B8.0.6%5DNX%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E5%85%A8%E8%BF%87%E7%A8%8B%E5%8F%8A%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95-%E9%AB%98%E9%A2%A2%E5%98%89.md)）的 Jetson Xavier NX 上下载main分支的代码zip文件，解压，进入该文件目录，安装相关包文件。
