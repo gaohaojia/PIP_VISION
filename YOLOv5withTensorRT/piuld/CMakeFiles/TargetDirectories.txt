@@ -1,4 +1,0 @@
-/home/pip-2/RM/tensorrtx-master/yolov5/piuld/CMakeFiles/rebuild_cache.dir
-/home/pip-2/RM/tensorrtx-master/yolov5/piuld/CMakeFiles/edit_cache.dir
-/home/pip-2/RM/tensorrtx-master/yolov5/piuld/CMakeFiles/myplugins.dir
-/home/pip-2/RM/tensorrtx-master/yolov5/piuld/CMakeFiles/yolov5.dir
