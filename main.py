@@ -51,6 +51,11 @@ TOLERANT_VALUE = 30
 容错值:
     预测坐标的容错范围（像素）。
 """
+TEST_IMAGE = cv2.imread("images/000001.jpeg")
+"""
+测试用图片:
+    当摄像头不能使用时，用该图片代替。
+"""
 
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
 
@@ -304,14 +309,19 @@ if __name__ == "__main__":
     # 循环检测目标与发送信息
     while 1:
         try:
-            begin = time.time() # 计时开始
+            side1 = time.time() # 计时开始
 
-            frame = buffer.get_frame() if not buffer is None else cv2.imread("images/000001.jpeg")         # 获取相机图像
+            frame = buffer.get_frame() if not buffer is None else TEST_IMAGE                               # 获取相机图像
             frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+
+            side2 = time.time()
             result = yolov5_wrapper.infer(frame)                                                           # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
+
+            side3 = time.time()
             result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                               # 得到敌军的boxes信息
             
+            side4 = time.time()
             detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                            # 计算测量结果
             trans_detect_data(ser, detect_data)                                                            # 发送检测结果
 
@@ -320,13 +330,18 @@ if __name__ == "__main__":
                                        label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
                                        result_boxes.scores[minBox_idx]), )
 
-            end = time.time()                                     # 结束计时
-            detect_data.pre_time = (end - begin) * 1000           # 统计用时
+            side5 = time.time()                                     # 结束计时
+            detect_data.pre_time = (side5 - side1) * 1000           # 统计用时
  
             cv2.waitKey(1) 
             cv2.imshow("Result", frame)                           # 显示图像输出
             if RUN_MODE: 
-                print(f"Frame Time: {detect_data.pre_time}ms")    # 输出用时
+                # 输出用时
+                print(f"Frame Time: {detect_data.pre_time}ms")
+                print(f"Get Frame Time: {(side2 - side1) * 1000}ms")
+                print(f"Detect Time: {(side3 - side2) * 1000}ms")
+                print(f"Get Enemy Time: {(side4 - side3) * 1000}ms")
+                print(f"Calculate Time: {(side5 - side4) * 1000}ms")
  
         except Exception as e:
             print(e)
