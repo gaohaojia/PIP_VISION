@@ -288,7 +288,10 @@ if __name__ == "__main__":
         print("Debug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
 
-    buffer = init_camera.buffer()
+    try:
+        buffer = init_camera.buffer()
+    except:
+        buffer = None
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
@@ -303,7 +306,7 @@ if __name__ == "__main__":
         try:
             begin = time.time() # 计时开始
 
-            frame = buffer.get_frame()                                                                     # 获取相机图像
+            frame = buffer.get_frame() if not buffer is None else cv2.imread("images/000001.jpeg")         # 获取相机图像
             frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
             result = yolov5_wrapper.infer(frame)                                                           # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类

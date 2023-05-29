@@ -10,9 +10,7 @@ class buffer():
     def __init__(self):
         DevList = mvsdk.CameraEnumerateDevice()
         nDev = len(DevList)
-        if nDev < 1:
-            print("No camera was found!")
-            sys.exit()
+        assert nDev < 1, "No camera was found!"
 
         DevInfo = DevList[0]
 
