@@ -303,7 +303,7 @@ if __name__ == "__main__":
         try:
             begin = time.time() # 计时开始
 
-            frame = buffer.get_frame()   # 获取相机图像
+            frame = buffer.get_frame()                                                                     # 获取相机图像
             frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
             result = yolov5_wrapper.infer(frame)                                                           # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
