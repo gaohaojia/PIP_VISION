@@ -1,3 +1,6 @@
+"""
+该文件被main.py文件调用，返回由yolov5模型预测出来的目标信息。
+"""
 import random
 import threading
 import cv2
@@ -7,10 +10,6 @@ import pycuda.autoinit # 勿删，该包有调用，灰色是编译器问题。
 import tensorrt as trt
 import torch
 import torchvision
-
-# 调此处无效
-CONF_THRESH = 0
-IOU_THRESHOLD = 0
 
 check_fr = 0
 fr = []
@@ -60,8 +59,8 @@ class YoLov5TRT(object):
     """
     def __init__(self, engine_file_path, conf_thresh, iou_threshold):
 
-        CONF_THRESH = conf_thresh
-        IOU_THRESHOLD = iou_threshold
+        self.conf_thresh = conf_thresh
+        self.iou_threshold = iou_threshold
 
         # Create a Context on this device,
         self.ctx = cuda.Device(0).make_context()
@@ -154,12 +153,9 @@ class YoLov5TRT(object):
         # Do postprocess
         result_boxes, result_scores, result_classid = self.post_process(
             output, origin_h, origin_w)
+        
+        return (result_boxes, result_scores, result_classid)
 
-        # 后续对YOLOV7的移植，这里需要添加代码
-
-        return (result_boxes, result_scores, result_classid), image_raw
-
-    # TODO:从这里开始照抄rt源文件
     def destroy(self):
         # Remove any context from the top of the context stack, deactivating it.
         self.ctx.pop()
@@ -283,7 +279,7 @@ class YoLov5TRT(object):
         # Get the classid
         classid = pred[:, 5]
         # Choose those boxes that score > CONF_THRESH
-        si = scores > CONF_THRESH
+        si = scores > self.conf_thresh
         boxes = boxes[si, :]
         scores = scores[si]
         classid = classid[si]
@@ -293,7 +289,7 @@ class YoLov5TRT(object):
         
         # TODO:值得注意的是，下面nms算法在cpu中进行，而nms算法是十分耗费资源的，这是优化的切入点之一
         # Do nms
-        indices = torchvision.ops.nms(boxes, scores, iou_threshold=IOU_THRESHOLD).cpu()
+        indices = torchvision.ops.nms(boxes, scores, iou_threshold=self.iou_threshold).cpu()
         result_boxes = boxes[indices, :].cpu()
         result_scores = scores[indices].cpu()
         result_classid = classid[indices].cpu()
