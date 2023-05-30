@@ -290,7 +290,7 @@ if __name__ == "__main__":
     categories = categories7 if ENGINE_VERSION == 7 else categories5
 
     if RUN_MODE:
-        print("\r\nDebug Mode.")
+        print("\n\n\nDebug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
 
     try:
@@ -337,7 +337,7 @@ if __name__ == "__main__":
             cv2.imshow("Result", frame)                           # 显示图像输出
             if RUN_MODE: 
                 # 输出用时
-                print(f"Frame Time: {detect_data.pre_time}ms")
+                print(f"Total Time: {detect_data.pre_time}ms")
                 print(f"Get Frame Time: {(side2 - side1) * 1000}ms")
                 print(f"Detect Time: {(side3 - side2) * 1000}ms")
                 print(f"Get Enemy Time: {(side4 - side3) * 1000}ms")
