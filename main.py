@@ -317,7 +317,7 @@ if __name__ == "__main__":
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
-    get_frame_thread = get_frame()
+    get_frame_thread = get_frame()                                                            # 启动获取图像线程
     get_frame_thread.start()
 
     ''' 待与电控测试
