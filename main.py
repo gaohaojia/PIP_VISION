@@ -57,6 +57,7 @@ TEST_IMAGE = cv2.imread("images/000001.jpeg")
     当摄像头不能使用时，用该图片代替。
 """
 
+frame = None # 当前图像
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
 
 # 一些相机参数常量，用于计算显示距离
@@ -269,6 +270,25 @@ class listening_ser(threading.Thread):
             except:
                 pass
 
+class get_frame(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        try:
+            self.buffer = init_camera.buffer()
+        except:
+            self.buffer = None
+
+    def run(self):
+        global frame
+        if self.buffer == None:
+            frame = TEST_IMAGE
+            return
+        while(1):
+            frame = self.buffer.get_frame()                                                                # 获取相机图像
+            frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+            time.sleep(0.001)
+            
+
 if __name__ == "__main__":
     """
     description:   运行主函数。
@@ -293,13 +313,12 @@ if __name__ == "__main__":
         print("\n\n\nDebug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
 
-    try:
-        buffer = init_camera.buffer()
-    except:
-        buffer = None
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
+
+    get_frame_thread = get_frame()
+    get_frame_thread.start()
 
     ''' 待与电控测试
     listening_thread = listening_ser()  # 运行监听线程
@@ -310,11 +329,7 @@ if __name__ == "__main__":
     while 1:
         try:
             side1 = time.time() # 计时开始
-
-            frame = buffer.get_frame() if not buffer is None else TEST_IMAGE                               # 获取相机图像
-            frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
-
-            side2 = time.time()
+            
             result = yolov5_wrapper.infer(frame)                                                           # 用YOLOv5检测目标
             result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
 
@@ -338,8 +353,7 @@ if __name__ == "__main__":
             if RUN_MODE: 
                 # 输出用时
                 print(f"Total Time: {detect_data.pre_time}ms")
-                print(f"Get Frame Time: {(side2 - side1) * 1000}ms")
-                print(f"Detect Time: {(side3 - side2) * 1000}ms")
+                print(f"Detect Time: {(side3 - side1) * 1000}ms")
                 print(f"Get Enemy Time: {(side4 - side3) * 1000}ms")
                 print(f"Calculate Time: {(side5 - side4) * 1000}ms")
  
