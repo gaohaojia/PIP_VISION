@@ -10,7 +10,7 @@ The output was:
 
 Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
 
-The C compiler identification is GNU, found in "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/3.10.2/CompilerIdC/a.out"
+The C compiler identification is GNU, found in "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/3.10.2/CompilerIdC/a.out"
 
 Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
 Compiler: /usr/bin/c++ 
@@ -23,33 +23,33 @@ The output was:
 
 Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
 
-The CXX compiler identification is GNU, found in "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/3.10.2/CompilerIdCXX/a.out"
+The CXX compiler identification is GNU, found in "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/3.10.2/CompilerIdCXX/a.out"
 
 Determining if the C compiler works passed with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_dea34/fast"
-/usr/bin/make -f CMakeFiles/cmTC_dea34.dir/build.make CMakeFiles/cmTC_dea34.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_dea34.dir/testCCompiler.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_dea34.dir/testCCompiler.c.o   -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_dea34
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_dea34.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_dea34.dir/testCCompiler.c.o  -o cmTC_dea34 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_a45c8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a45c8.dir/build.make CMakeFiles/cmTC_a45c8.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a45c8.dir/testCCompiler.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_a45c8.dir/testCCompiler.c.o   -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp/testCCompiler.c"
+Linking C executable cmTC_a45c8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a45c8.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_a45c8.dir/testCCompiler.c.o  -o cmTC_a45c8 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
 Detecting C compiler ABI info compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_30f40/fast"
-/usr/bin/make -f CMakeFiles/cmTC_30f40.dir/build.make CMakeFiles/cmTC_30f40.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c
-Linking C executable cmTC_30f40
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_30f40.dir/link.txt --verbose=1
-/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o  -o cmTC_30f40 
+Run Build Command:"/usr/bin/make" "cmTC_98134/fast"
+/usr/bin/make -f CMakeFiles/cmTC_98134.dir/build.make CMakeFiles/cmTC_98134.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_98134
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_98134.dir/link.txt --verbose=1
+/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o  -o cmTC_98134 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/cc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper
@@ -59,24 +59,24 @@ Thread model: posix
 gcc version 7.5.0 (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) 
 COMPILER_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib/:/lib/aarch64-linux-gnu/:/lib/../lib/:/usr/lib/aarch64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_30f40' '-mlittle-endian' '-mabi=lp64'
- /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccBpfmvX.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_30f40 /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_30f40' '-mlittle-endian' '-mabi=lp64'
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_98134' '-mlittle-endian' '-mabi=lp64'
+ /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccFmKYC3.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_98134 /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_98134' '-mlittle-endian' '-mabi=lp64'
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
 Parsed C implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp]
+  ignore line: [Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_30f40/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_30f40.dir/build.make CMakeFiles/cmTC_30f40.dir/build]
-  ignore line: [make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp']
-  ignore line: [Building C object CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c]
-  ignore line: [Linking C executable cmTC_30f40]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_30f40.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o  -o cmTC_30f40 ]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_98134/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_98134.dir/build.make CMakeFiles/cmTC_98134.dir/build]
+  ignore line: [make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_98134]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_98134.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o  -o cmTC_98134 ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/cc]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper]
@@ -86,13 +86,13 @@ Parsed C implicit link information from above output:
   ignore line: [gcc version 7.5.0 (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) ]
   ignore line: [COMPILER_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/]
   ignore line: [LIBRARY_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib/:/lib/aarch64-linux-gnu/:/lib/../lib/:/usr/lib/aarch64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_30f40' '-mlittle-endian' '-mabi=lp64']
-  link line: [ /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccBpfmvX.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_30f40 /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_98134' '-mlittle-endian' '-mabi=lp64']
+  link line: [ /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccFmKYC3.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_98134 /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o]
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccBpfmvX.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccFmKYC3.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -113,7 +113,7 @@ Parsed C implicit link information from above output:
     arg [-znow] ==> ignore
     arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_30f40] ==> ignore
+    arg [cmTC_98134] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o] ==> ignore
@@ -125,7 +125,7 @@ Parsed C implicit link information from above output:
     arg [-L/usr/lib/aarch64-linux-gnu] ==> dir [/usr/lib/aarch64-linux-gnu]
     arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
     arg [-L/usr/lib/gcc/aarch64-linux-gnu/7/../../..] ==> dir [/usr/lib/gcc/aarch64-linux-gnu/7/../../..]
-    arg [CMakeFiles/cmTC_30f40.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [CMakeFiles/cmTC_98134.dir/CMakeCCompilerABI.c.o] ==> ignore
     arg [-lgcc] ==> lib [gcc]
     arg [--push-state] ==> ignore
     arg [--as-needed] ==> ignore
@@ -155,17 +155,17 @@ Parsed C implicit link information from above output:
 
 
 Detecting C [-std=c11] compiler features compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_282fd/fast"
-/usr/bin/make -f CMakeFiles/cmTC_282fd.dir/build.make CMakeFiles/cmTC_282fd.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_282fd.dir/feature_tests.c.o
-/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_282fd.dir/feature_tests.c.o   -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/feature_tests.c
-Linking C executable cmTC_282fd
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_282fd.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_282fd.dir/feature_tests.c.o  -o cmTC_282fd 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_78096/fast"
+/usr/bin/make -f CMakeFiles/cmTC_78096.dir/build.make CMakeFiles/cmTC_78096.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_78096.dir/feature_tests.c.o
+/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_78096.dir/feature_tests.c.o   -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/feature_tests.c"
+Linking C executable cmTC_78096
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_78096.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_78096.dir/feature_tests.c.o  -o cmTC_78096 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -175,17 +175,17 @@ make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMak
 
 
 Detecting C [-std=c99] compiler features compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_10ab3/fast"
-/usr/bin/make -f CMakeFiles/cmTC_10ab3.dir/build.make CMakeFiles/cmTC_10ab3.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_10ab3.dir/feature_tests.c.o
-/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_10ab3.dir/feature_tests.c.o   -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/feature_tests.c
-Linking C executable cmTC_10ab3
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_10ab3.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_10ab3.dir/feature_tests.c.o  -o cmTC_10ab3 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_47bd1/fast"
+/usr/bin/make -f CMakeFiles/cmTC_47bd1.dir/build.make CMakeFiles/cmTC_47bd1.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_47bd1.dir/feature_tests.c.o
+/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_47bd1.dir/feature_tests.c.o   -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/feature_tests.c"
+Linking C executable cmTC_47bd1
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_47bd1.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_47bd1.dir/feature_tests.c.o  -o cmTC_47bd1 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -195,17 +195,17 @@ make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMak
 
 
 Detecting C [-std=c90] compiler features compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_c4bfd/fast"
-/usr/bin/make -f CMakeFiles/cmTC_c4bfd.dir/build.make CMakeFiles/cmTC_c4bfd.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_c4bfd.dir/feature_tests.c.o
-/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_c4bfd.dir/feature_tests.c.o   -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/feature_tests.c
-Linking C executable cmTC_c4bfd
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c4bfd.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_c4bfd.dir/feature_tests.c.o  -o cmTC_c4bfd 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_9966e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9966e.dir/build.make CMakeFiles/cmTC_9966e.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_9966e.dir/feature_tests.c.o
+/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_9966e.dir/feature_tests.c.o   -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/feature_tests.c"
+Linking C executable cmTC_9966e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9966e.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_9966e.dir/feature_tests.c.o  -o cmTC_9966e 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -213,30 +213,30 @@ make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMak
     Feature record: C_FEATURE:0c_static_assert
     Feature record: C_FEATURE:0c_variadic_macros
 Determining if the CXX compiler works passed with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_c0834/fast"
-/usr/bin/make -f CMakeFiles/cmTC_c0834.dir/build.make CMakeFiles/cmTC_c0834.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_c0834.dir/testCXXCompiler.cxx.o
-/usr/bin/c++     -o CMakeFiles/cmTC_c0834.dir/testCXXCompiler.cxx.o -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_c0834
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c0834.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_c0834.dir/testCXXCompiler.cxx.o  -o cmTC_c0834 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_a0aab/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a0aab.dir/build.make CMakeFiles/cmTC_a0aab.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_a0aab.dir/testCXXCompiler.cxx.o
+/usr/bin/c++     -o CMakeFiles/cmTC_a0aab.dir/testCXXCompiler.cxx.o -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx"
+Linking CXX executable cmTC_a0aab
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a0aab.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_a0aab.dir/testCXXCompiler.cxx.o  -o cmTC_a0aab 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
 Detecting CXX compiler ABI info compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_c5e7b/fast"
-/usr/bin/make -f CMakeFiles/cmTC_c5e7b.dir/build.make CMakeFiles/cmTC_c5e7b.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o
-/usr/bin/c++     -o CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp
-Linking CXX executable cmTC_c5e7b
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c5e7b.dir/link.txt --verbose=1
-/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_c5e7b 
+Run Build Command:"/usr/bin/make" "cmTC_a6bc2/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a6bc2.dir/build.make CMakeFiles/cmTC_a6bc2.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++     -o CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_a6bc2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a6bc2.dir/link.txt --verbose=1
+/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_a6bc2 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/c++
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper
@@ -246,24 +246,24 @@ Thread model: posix
 gcc version 7.5.0 (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) 
 COMPILER_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib/:/lib/aarch64-linux-gnu/:/lib/../lib/:/usr/lib/aarch64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c5e7b' '-shared-libgcc' '-mlittle-endian' '-mabi=lp64'
- /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccsvYGpq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_c5e7b /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c5e7b' '-shared-libgcc' '-mlittle-endian' '-mabi=lp64'
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_a6bc2' '-shared-libgcc' '-mlittle-endian' '-mabi=lp64'
+ /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/cc0iyNfk.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_a6bc2 /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_a6bc2' '-shared-libgcc' '-mlittle-endian' '-mabi=lp64'
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
 Parsed CXX implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp]
+  ignore line: [Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_c5e7b/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_c5e7b.dir/build.make CMakeFiles/cmTC_c5e7b.dir/build]
-  ignore line: [make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp']
-  ignore line: [Building CXX object CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp]
-  ignore line: [Linking CXX executable cmTC_c5e7b]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c5e7b.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_c5e7b ]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_a6bc2/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_a6bc2.dir/build.make CMakeFiles/cmTC_a6bc2.dir/build]
+  ignore line: [make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_a6bc2]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a6bc2.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_a6bc2 ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/c++]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper]
@@ -273,13 +273,13 @@ Parsed CXX implicit link information from above output:
   ignore line: [gcc version 7.5.0 (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) ]
   ignore line: [COMPILER_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/]
   ignore line: [LIBRARY_PATH=/usr/lib/gcc/aarch64-linux-gnu/7/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib/:/lib/aarch64-linux-gnu/:/lib/../lib/:/usr/lib/aarch64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/aarch64-linux-gnu/7/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c5e7b' '-shared-libgcc' '-mlittle-endian' '-mabi=lp64']
-  link line: [ /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccsvYGpq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_c5e7b /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_a6bc2' '-shared-libgcc' '-mlittle-endian' '-mabi=lp64']
+  link line: [ /usr/lib/gcc/aarch64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/cc0iyNfk.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib/ld-linux-aarch64.so.1 -X -EL -maarch64linux --fix-cortex-a53-843419 -pie -z now -z relro -o cmTC_a6bc2 /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o /usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/aarch64-linux-gnu/7 -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu -L/usr/lib/gcc/aarch64-linux-gnu/7/../../../../lib -L/lib/aarch64-linux-gnu -L/lib/../lib -L/usr/lib/aarch64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/aarch64-linux-gnu/7/../../.. CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/aarch64-linux-gnu/7/crtendS.o /usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crtn.o]
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib/gcc/aarch64-linux-gnu/7/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccsvYGpq.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/cc0iyNfk.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -300,7 +300,7 @@ Parsed CXX implicit link information from above output:
     arg [-znow] ==> ignore
     arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_c5e7b] ==> ignore
+    arg [cmTC_a6bc2] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/Scrt1.o] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/../../../aarch64-linux-gnu/crti.o] ==> ignore
     arg [/usr/lib/gcc/aarch64-linux-gnu/7/crtbeginS.o] ==> ignore
@@ -312,7 +312,7 @@ Parsed CXX implicit link information from above output:
     arg [-L/usr/lib/aarch64-linux-gnu] ==> dir [/usr/lib/aarch64-linux-gnu]
     arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
     arg [-L/usr/lib/gcc/aarch64-linux-gnu/7/../../..] ==> dir [/usr/lib/gcc/aarch64-linux-gnu/7/../../..]
-    arg [CMakeFiles/cmTC_c5e7b.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [CMakeFiles/cmTC_a6bc2.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
     arg [-lstdc++] ==> lib [stdc++]
     arg [-lm] ==> lib [m]
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -338,17 +338,17 @@ Parsed CXX implicit link information from above output:
 
 
 Detecting CXX [-std=c++1z] compiler features compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_e76b8/fast"
-/usr/bin/make -f CMakeFiles/cmTC_e76b8.dir/build.make CMakeFiles/cmTC_e76b8.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_e76b8.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++1z -o CMakeFiles/cmTC_e76b8.dir/feature_tests.cxx.o -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_e76b8
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e76b8.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_e76b8.dir/feature_tests.cxx.o  -o cmTC_e76b8 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_98da3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_98da3.dir/build.make CMakeFiles/cmTC_98da3.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_98da3.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++1z -o CMakeFiles/cmTC_98da3.dir/feature_tests.cxx.o -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/feature_tests.cxx"
+Linking CXX executable cmTC_98da3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_98da3.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_98da3.dir/feature_tests.cxx.o  -o cmTC_98da3 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
@@ -411,17 +411,17 @@ make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMak
 
 
 Detecting CXX [-std=c++14] compiler features compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_663c6/fast"
-/usr/bin/make -f CMakeFiles/cmTC_663c6.dir/build.make CMakeFiles/cmTC_663c6.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_663c6.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++14 -o CMakeFiles/cmTC_663c6.dir/feature_tests.cxx.o -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_663c6
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_663c6.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_663c6.dir/feature_tests.cxx.o  -o cmTC_663c6 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_026ff/fast"
+/usr/bin/make -f CMakeFiles/cmTC_026ff.dir/build.make CMakeFiles/cmTC_026ff.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_026ff.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++14 -o CMakeFiles/cmTC_026ff.dir/feature_tests.cxx.o -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/feature_tests.cxx"
+Linking CXX executable cmTC_026ff
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_026ff.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_026ff.dir/feature_tests.cxx.o  -o cmTC_026ff 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
@@ -484,17 +484,17 @@ make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMak
 
 
 Detecting CXX [-std=c++11] compiler features compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_13afc/fast"
-/usr/bin/make -f CMakeFiles/cmTC_13afc.dir/build.make CMakeFiles/cmTC_13afc.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_13afc.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_13afc.dir/feature_tests.cxx.o -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_13afc
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_13afc.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_13afc.dir/feature_tests.cxx.o  -o cmTC_13afc 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_cd9e6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_cd9e6.dir/build.make CMakeFiles/cmTC_cd9e6.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_cd9e6.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_cd9e6.dir/feature_tests.cxx.o -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/feature_tests.cxx"
+Linking CXX executable cmTC_cd9e6
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cd9e6.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_cd9e6.dir/feature_tests.cxx.o  -o cmTC_cd9e6 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
@@ -557,17 +557,17 @@ make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMak
 
 
 Detecting CXX [-std=c++98] compiler features compiled with the following output:
-Change Dir: /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp
+Change Dir: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_57c2b/fast"
-/usr/bin/make -f CMakeFiles/cmTC_57c2b.dir/build.make CMakeFiles/cmTC_57c2b.dir/build
-make[1]: Entering directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_57c2b.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_57c2b.dir/feature_tests.cxx.o -c /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_57c2b
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_57c2b.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_57c2b.dir/feature_tests.cxx.o  -o cmTC_57c2b 
-make[1]: Leaving directory '/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/make" "cmTC_56232/fast"
+/usr/bin/make -f CMakeFiles/cmTC_56232.dir/build.make CMakeFiles/cmTC_56232.dir/build
+make[1]: Entering directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_56232.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_56232.dir/feature_tests.cxx.o -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/feature_tests.cxx"
+Linking CXX executable cmTC_56232
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_56232.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_56232.dir/feature_tests.cxx.o  -o cmTC_56232 
+make[1]: Leaving directory '/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers

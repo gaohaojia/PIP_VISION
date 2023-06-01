@@ -15,8 +15,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "CMakeFiles/feature_tests.cxx"
   "CMakeFiles/myplugins.dir/myplugins_generated_yololayer.cu.o.cmake.pre-gen"
   "CMakeFiles/myplugins.dir/myplugins_generated_yololayer.cu.o.depend"
-  "CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o.cmake.pre-gen"
-  "CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o.depend"
   "/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVConfig-version.cmake"
   "/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake"
   "/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVModules-release.cmake"
@@ -123,9 +121,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/3.10.2/CMakeCCompiler.cmake"
   "CMakeFiles/3.10.2/CMakeCXXCompiler.cmake"
   "CMakeFiles/myplugins.dir/myplugins_generated_yololayer.cu.o.cmake.pre-gen"
-  "CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o.cmake.pre-gen"
   "CMakeFiles/myplugins.dir/myplugins_generated_yololayer.cu.o.Debug.cmake"
-  "CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o.Debug.cmake"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 

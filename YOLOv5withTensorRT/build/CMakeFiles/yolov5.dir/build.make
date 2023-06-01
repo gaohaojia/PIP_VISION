@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/pip/Desktop/yolov5+tensorrt/yolov5
+CMAKE_SOURCE_DIR = "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc
+CMAKE_BINARY_DIR = "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build"
 
 # Include any dependencies generated for this target.
 include CMakeFiles/yolov5.dir/depend.make
@@ -57,25 +57,18 @@ include CMakeFiles/yolov5.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/yolov5.dir/flags.make
 
-CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o: CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o.depend
-CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o: CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o.Debug.cmake
-CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o: ../preprocess.cu
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building NVCC (Device) object CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o"
-	cd /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir && /usr/bin/cmake -E make_directory /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir//.
-	cd /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir && /usr/bin/cmake -D verbose:BOOL=$(VERBOSE) -D build_configuration:STRING=Debug -D generated_file:STRING=/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir//./yolov5_generated_preprocess.cu.o -D generated_cubin_file:STRING=/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir//./yolov5_generated_preprocess.cu.o.cubin.txt -P /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir//yolov5_generated_preprocess.cu.o.Debug.cmake
-
 CMakeFiles/yolov5.dir/calibrator.cpp.o: CMakeFiles/yolov5.dir/flags.make
 CMakeFiles/yolov5.dir/calibrator.cpp.o: ../calibrator.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/yolov5.dir/calibrator.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/yolov5.dir/calibrator.cpp.o -c /home/pip/Desktop/yolov5+tensorrt/yolov5/calibrator.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/yolov5.dir/calibrator.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/yolov5.dir/calibrator.cpp.o -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/calibrator.cpp"
 
 CMakeFiles/yolov5.dir/calibrator.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/yolov5.dir/calibrator.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pip/Desktop/yolov5+tensorrt/yolov5/calibrator.cpp > CMakeFiles/yolov5.dir/calibrator.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/calibrator.cpp" > CMakeFiles/yolov5.dir/calibrator.cpp.i
 
 CMakeFiles/yolov5.dir/calibrator.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/yolov5.dir/calibrator.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pip/Desktop/yolov5+tensorrt/yolov5/calibrator.cpp -o CMakeFiles/yolov5.dir/calibrator.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/calibrator.cpp" -o CMakeFiles/yolov5.dir/calibrator.cpp.s
 
 CMakeFiles/yolov5.dir/calibrator.cpp.o.requires:
 
@@ -90,16 +83,16 @@ CMakeFiles/yolov5.dir/calibrator.cpp.o.provides.build: CMakeFiles/yolov5.dir/cal
 
 CMakeFiles/yolov5.dir/yolov5.cpp.o: CMakeFiles/yolov5.dir/flags.make
 CMakeFiles/yolov5.dir/yolov5.cpp.o: ../yolov5.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/yolov5.dir/yolov5.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/yolov5.dir/yolov5.cpp.o -c /home/pip/Desktop/yolov5+tensorrt/yolov5/yolov5.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/yolov5.dir/yolov5.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/yolov5.dir/yolov5.cpp.o -c "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/yolov5.cpp"
 
 CMakeFiles/yolov5.dir/yolov5.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/yolov5.dir/yolov5.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pip/Desktop/yolov5+tensorrt/yolov5/yolov5.cpp > CMakeFiles/yolov5.dir/yolov5.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/yolov5.cpp" > CMakeFiles/yolov5.dir/yolov5.cpp.i
 
 CMakeFiles/yolov5.dir/yolov5.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/yolov5.dir/yolov5.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pip/Desktop/yolov5+tensorrt/yolov5/yolov5.cpp -o CMakeFiles/yolov5.dir/yolov5.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/yolov5.cpp" -o CMakeFiles/yolov5.dir/yolov5.cpp.s
 
 CMakeFiles/yolov5.dir/yolov5.cpp.o.requires:
 
@@ -118,14 +111,11 @@ yolov5_OBJECTS = \
 "CMakeFiles/yolov5.dir/yolov5.cpp.o"
 
 # External object files for target yolov5
-yolov5_EXTERNAL_OBJECTS = \
-"/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o"
+yolov5_EXTERNAL_OBJECTS =
 
 yolov5: CMakeFiles/yolov5.dir/calibrator.cpp.o
 yolov5: CMakeFiles/yolov5.dir/yolov5.cpp.o
-yolov5: CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o
 yolov5: CMakeFiles/yolov5.dir/build.make
-yolov5: /usr/local/cuda-10.2/lib64/libcudart.so
 yolov5: libmyplugins.so
 yolov5: /usr/lib/aarch64-linux-gnu/libopencv_dnn.so.4.1.1
 yolov5: /usr/lib/aarch64-linux-gnu/libopencv_gapi.so.4.1.1
@@ -144,7 +134,7 @@ yolov5: /usr/lib/aarch64-linux-gnu/libopencv_flann.so.4.1.1
 yolov5: /usr/lib/aarch64-linux-gnu/libopencv_imgproc.so.4.1.1
 yolov5: /usr/lib/aarch64-linux-gnu/libopencv_core.so.4.1.1
 yolov5: CMakeFiles/yolov5.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable yolov5"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable yolov5"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/yolov5.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -161,7 +151,7 @@ CMakeFiles/yolov5.dir/clean:
 	$(CMAKE_COMMAND) -P CMakeFiles/yolov5.dir/cmake_clean.cmake
 .PHONY : CMakeFiles/yolov5.dir/clean
 
-CMakeFiles/yolov5.dir/depend: CMakeFiles/yolov5.dir/yolov5_generated_preprocess.cu.o
-	cd /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/pip/Desktop/yolov5+tensorrt/yolov5 /home/pip/Desktop/yolov5+tensorrt/yolov5 /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc /home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir/DependInfo.cmake --color=$(COLOR)
+CMakeFiles/yolov5.dir/depend:
+	cd "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0" "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0" "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build" "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build" "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/yolov5.dir/DependInfo.cmake" --color=$(COLOR)
 .PHONY : CMakeFiles/yolov5.dir/depend
 

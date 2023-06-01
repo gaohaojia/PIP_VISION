@@ -58,18 +58,18 @@ endif()
 
 # Set these up as variables to make reading the generated file easier
 set(CMAKE_COMMAND "/usr/bin/cmake") # path
-set(source_file "/home/pip/Desktop/yolov5+tensorrt/yolov5/yololayer.cu") # path
-set(NVCC_generated_dependency_file "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/myplugins.dir//myplugins_generated_yololayer.cu.o.NVCC-depend") # path
-set(cmake_dependency_file "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/myplugins.dir//myplugins_generated_yololayer.cu.o.depend") # path
+set(source_file "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/yololayer.cu") # path
+set(NVCC_generated_dependency_file "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/myplugins.dir//myplugins_generated_yololayer.cu.o.NVCC-depend") # path
+set(cmake_dependency_file "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/myplugins.dir//myplugins_generated_yololayer.cu.o.depend") # path
 set(CUDA_make2cmake "/usr/share/cmake-3.10/Modules/FindCUDA/make2cmake.cmake") # path
 set(CUDA_parse_cubin "/usr/share/cmake-3.10/Modules/FindCUDA/parse_cubin.cmake") # path
 set(build_cubin OFF) # bool
 set(CUDA_HOST_COMPILER "/usr/bin/cc") # path
 # We won't actually use these variables for now, but we need to set this, in
 # order to force this file to be run again if it changes.
-set(generated_file_path "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/myplugins.dir//.") # path
-set(generated_file_internal "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/myplugins.dir//./myplugins_generated_yololayer.cu.o") # path
-set(generated_cubin_file_internal "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/myplugins.dir//./myplugins_generated_yololayer.cu.o.cubin.txt") # path
+set(generated_file_path "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/myplugins.dir//.") # path
+set(generated_file_internal "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/myplugins.dir//./myplugins_generated_yololayer.cu.o") # path
+set(generated_cubin_file_internal "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/CMakeFiles/myplugins.dir//./myplugins_generated_yololayer.cu.o.cubin.txt") # path
 
 set(CUDA_NVCC_EXECUTABLE "/usr/local/cuda-10.2/bin/nvcc") # path
 set(CUDA_NVCC_FLAGS  ;; ) # list
@@ -79,7 +79,7 @@ set(CUDA_NVCC_FLAGS_MINSIZEREL  ; )
 set(CUDA_NVCC_FLAGS_RELEASE  ; )
 set(CUDA_NVCC_FLAGS_RELWITHDEBINFO  ; )
 set(nvcc_flags -m64;--std;c++11;-Dmyplugins_EXPORTS) # list
-set(CUDA_NVCC_INCLUDE_DIRS "/usr/local/cuda-10.2/include;/home/pip/Desktop/yolov5+tensorrt/yolov5/include;/usr/local/cuda/include;/usr/include/x86_64-linux-gnu;/usr/local/cuda-10.2/include;/usr/include/opencv4") # list (needs to be in quotes to handle spaces properly).
+set(CUDA_NVCC_INCLUDE_DIRS "/usr/local/cuda-10.2/include;/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/include;/usr/local/cuda/include;/usr/include/x86_64-linux-gnu;/usr/local/cuda-10.2/include;/usr/include/opencv4") # list (needs to be in quotes to handle spaces properly).
 set(CUDA_NVCC_COMPILE_DEFINITIONS [==[API_EXPORTS]==]) # list (needs to be in lua quotes see #16510 ).
 set(format_flag "-c") # string
 set(cuda_language_flag ) # list
@@ -104,7 +104,7 @@ endif()
 
 # This is the list of host compilation flags.  It C or CXX should already have
 # been chosen by FindCUDA.cmake.
-set(CMAKE_HOST_FLAGS   -Wall -Ofast -g -Wfatal-errors -D_MWAITXINTRIN_H_INCLUDED -fPIC)
+set(CMAKE_HOST_FLAGS   -Wall -Ofast -Wfatal-errors -D_MWAITXINTRIN_H_INCLUDED -fPIC)
 set(CMAKE_HOST_FLAGS_DEBUG -g)
 set(CMAKE_HOST_FLAGS_MINSIZEREL -Os -DNDEBUG)
 set(CMAKE_HOST_FLAGS_RELEASE -O3 -DNDEBUG)

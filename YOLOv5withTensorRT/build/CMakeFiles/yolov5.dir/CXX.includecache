@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/calibrator.cpp
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/calibrator.cpp
 iostream
 -
 iterator
@@ -16,13 +16,13 @@ fstream
 opencv2/dnn/dnn.hpp
 -
 calibrator.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/calibrator.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/calibrator.h
 cuda_utils.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/cuda_utils.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/cuda_utils.h
 utils.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/utils.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/utils.h
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/calibrator.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/calibrator.h
 NvInfer.h
 -
 string
@@ -30,9 +30,9 @@ string
 vector
 -
 macros.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/macros.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/macros.h
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/common.hpp
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/common.hpp
 fstream
 -
 map
@@ -44,17 +44,17 @@ vector
 opencv2/opencv.hpp
 -
 NvInfer.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/NvInfer.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/NvInfer.h
 yololayer.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/yololayer.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/yololayer.h
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/cuda_utils.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/cuda_utils.h
 cuda_runtime_api.h
 -
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/logging.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/logging.h
 NvInferRuntimeCommon.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/NvInferRuntimeCommon.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/NvInferRuntimeCommon.h
 cassert
 -
 ctime
@@ -70,23 +70,17 @@ sstream
 string
 -
 macros.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/macros.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/macros.h
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/macros.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/macros.h
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/preprocess.h
-cuda_runtime.h
--
-cstdint
--
-
-/home/pip/Desktop/yolov5+tensorrt/yolov5/utils.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/utils.h
 dirent.h
 -
 opencv2/opencv.hpp
 -
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/yololayer.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/yololayer.h
 vector
 -
 string
@@ -94,9 +88,9 @@ string
 NvInfer.h
 -
 macros.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/macros.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/macros.h
 
-/home/pip/Desktop/yolov5+tensorrt/yolov5/yolov5.cpp
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/yolov5.cpp
 iostream
 -
 chrono
@@ -104,17 +98,15 @@ chrono
 cmath
 -
 cuda_utils.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/cuda_utils.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/cuda_utils.h
 logging.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/logging.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/logging.h
 common.hpp
-/home/pip/Desktop/yolov5+tensorrt/yolov5/common.hpp
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/common.hpp
 utils.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/utils.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/utils.h
 calibrator.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/calibrator.h
-preprocess.h
-/home/pip/Desktop/yolov5+tensorrt/yolov5/preprocess.h
+/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/calibrator.h
 
 /usr/include/opencv4/opencv2/calib3d.hpp
 opencv2/core.hpp
@@ -1160,162 +1152,6 @@ texture_types.h
 vector_types.h
 /usr/local/cuda/include/vector_types.h
 
-/usr/local/cuda/include/channel_descriptor.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/crt/common_functions.h
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-string.h
--
-time.h
--
-new
--
-stdio.h
--
-stdlib.h
--
-assert.h
--
-cuda_device_runtime_api.h
-/usr/local/cuda/include/crt/cuda_device_runtime_api.h
-math_functions.h
-/usr/local/cuda/include/crt/math_functions.h
-
-/usr/local/cuda/include/crt/device_double_functions.h
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-device_types.h
-/usr/local/cuda/include/crt/device_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-device_double_functions.hpp
-/usr/local/cuda/include/crt/device_double_functions.hpp
-
-/usr/local/cuda/include/crt/device_double_functions.hpp
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-device_types.h
-/usr/local/cuda/include/crt/device_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-
-/usr/local/cuda/include/crt/device_functions.h
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-device_types.h
-/usr/local/cuda/include/crt/device_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-device_functions.hpp
-/usr/local/cuda/include/crt/device_functions.hpp
-device_atomic_functions.h
-/usr/local/cuda/include/crt/device_atomic_functions.h
-device_double_functions.h
-/usr/local/cuda/include/crt/device_double_functions.h
-sm_20_atomic_functions.h
-/usr/local/cuda/include/crt/sm_20_atomic_functions.h
-sm_32_atomic_functions.h
-/usr/local/cuda/include/crt/sm_32_atomic_functions.h
-sm_35_atomic_functions.h
-/usr/local/cuda/include/crt/sm_35_atomic_functions.h
-sm_60_atomic_functions.h
-/usr/local/cuda/include/crt/sm_60_atomic_functions.h
-sm_20_intrinsics.h
-/usr/local/cuda/include/crt/sm_20_intrinsics.h
-sm_30_intrinsics.h
-/usr/local/cuda/include/crt/sm_30_intrinsics.h
-sm_32_intrinsics.h
-/usr/local/cuda/include/crt/sm_32_intrinsics.h
-sm_35_intrinsics.h
-/usr/local/cuda/include/crt/sm_35_intrinsics.h
-sm_61_intrinsics.h
-/usr/local/cuda/include/crt/sm_61_intrinsics.h
-sm_70_rt.h
-/usr/local/cuda/include/crt/sm_70_rt.h
-surface_functions.h
-/usr/local/cuda/include/crt/surface_functions.h
-texture_fetch_functions.h
-/usr/local/cuda/include/crt/texture_fetch_functions.h
-texture_indirect_functions.h
-/usr/local/cuda/include/crt/texture_indirect_functions.h
-surface_indirect_functions.h
-/usr/local/cuda/include/crt/surface_indirect_functions.h
-
-/usr/local/cuda/include/crt/device_functions.hpp
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-device_types.h
-/usr/local/cuda/include/crt/device_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-
-/usr/local/cuda/include/crt/func_macro.h
-
-/usr/local/cuda/include/crt/host_config.h
-features.h
--
-crtdefs.h
--
-corecrt.h
--
-cstdarg
--
-
-/usr/local/cuda/include/crt/host_defines.h
-
-/usr/local/cuda/include/crt/math_functions.h
-__config
--
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-math.h
--
-stdlib.h
--
-cmath
--
-cstdlib
--
-crt/func_macro.h
--
-math_functions.hpp
-/usr/local/cuda/include/crt/math_functions.hpp
-
-/usr/local/cuda/include/crt/math_functions.hpp
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-math_constants.h
-/usr/local/cuda/include/crt/math_constants.h
-crt/func_macro.h
--
-
-/usr/local/cuda/include/crt/sm_70_rt.h
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-device_types.h
-/usr/local/cuda/include/crt/device_types.h
-host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-sm_70_rt.hpp
-/usr/local/cuda/include/crt/sm_70_rt.hpp
-
-/usr/local/cuda/include/crt/sm_70_rt.hpp
-builtin_types.h
-/usr/local/cuda/include/crt/builtin_types.h
-device_types.h
-/usr/local/cuda/include/crt/device_types.h
-host_defines.h
 /usr/local/cuda/include/crt/host_defines.h
 
 /usr/local/cuda/include/cuda_device_runtime_api.h
@@ -1324,50 +1160,6 @@ driver_types.h
 crt/host_defines.h
 /usr/local/cuda/include/crt/host_defines.h
 
-/usr/local/cuda/include/cuda_runtime.h
-crt/host_config.h
-/usr/local/cuda/include/crt/host_config.h
-builtin_types.h
-/usr/local/cuda/include/builtin_types.h
-library_types.h
-/usr/local/cuda/include/library_types.h
-channel_descriptor.h
-/usr/local/cuda/include/channel_descriptor.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-driver_functions.h
-/usr/local/cuda/include/driver_functions.h
-crt/host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-vector_functions.h
-/usr/local/cuda/include/vector_functions.h
-nvrtc_device_runtime.h
-/usr/local/cuda/include/nvrtc_device_runtime.h
-crt/device_functions.h
-/usr/local/cuda/include/crt/device_functions.h
-crt/common_functions.h
-/usr/local/cuda/include/crt/common_functions.h
-cuda_surface_types.h
-/usr/local/cuda/include/cuda_surface_types.h
-cuda_texture_types.h
-/usr/local/cuda/include/cuda_texture_types.h
-device_launch_parameters.h
-/usr/local/cuda/include/device_launch_parameters.h
-crt/common_functions.h
-/usr/local/cuda/include/crt/common_functions.h
-cuda_surface_types.h
-/usr/local/cuda/include/cuda_surface_types.h
-cuda_texture_types.h
-/usr/local/cuda/include/cuda_texture_types.h
-crt/device_functions.h
-/usr/local/cuda/include/crt/device_functions.h
-device_launch_parameters.h
-/usr/local/cuda/include/device_launch_parameters.h
-functional
--
-utility
--
-
 /usr/local/cuda/include/cuda_runtime_api.h
 crt/host_defines.h
 /usr/local/cuda/include/crt/host_defines.h
@@ -1375,48 +1167,10 @@ builtin_types.h
 /usr/local/cuda/include/builtin_types.h
 cuda_device_runtime_api.h
 /usr/local/cuda/include/cuda_device_runtime_api.h
-
-/usr/local/cuda/include/cuda_surface_types.h
-channel_descriptor.h
-/usr/local/cuda/include/channel_descriptor.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/cuda_texture_types.h
-channel_descriptor.h
-/usr/local/cuda/include/channel_descriptor.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/device_atomic_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-device_atomic_functions.hpp
-/usr/local/cuda/include/device_atomic_functions.hpp
-
-/usr/local/cuda/include/device_atomic_functions.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/device_launch_parameters.h
-vector_types.h
-/usr/local/cuda/include/vector_types.h
 
 /usr/local/cuda/include/device_types.h
 crt/host_defines.h
 /usr/local/cuda/include/crt/host_defines.h
-
-/usr/local/cuda/include/driver_functions.h
-builtin_types.h
-/usr/local/cuda/include/builtin_types.h
-crt/host_defines.h
-/usr/local/cuda/include/crt/host_defines.h
-driver_types.h
-/usr/local/cuda/include/driver_types.h
 
 /usr/local/cuda/include/driver_types.h
 crt/host_defines.h
@@ -1428,125 +1182,13 @@ limits.h
 stddef.h
 -
 
-/usr/local/cuda/include/library_types.h
-
-/usr/local/cuda/include/math_constants.h
-
-/usr/local/cuda/include/sm_20_atomic_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-sm_20_atomic_functions.hpp
-/usr/local/cuda/include/sm_20_atomic_functions.hpp
-
-/usr/local/cuda/include/sm_20_atomic_functions.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/sm_20_intrinsics.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-sm_20_intrinsics.hpp
-/usr/local/cuda/include/sm_20_intrinsics.hpp
-
-/usr/local/cuda/include/sm_20_intrinsics.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/sm_30_intrinsics.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-sm_30_intrinsics.hpp
-/usr/local/cuda/include/sm_30_intrinsics.hpp
-
-/usr/local/cuda/include/sm_30_intrinsics.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/sm_32_atomic_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-sm_32_atomic_functions.hpp
-/usr/local/cuda/include/sm_32_atomic_functions.hpp
-
-/usr/local/cuda/include/sm_32_atomic_functions.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/sm_32_intrinsics.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-sm_32_intrinsics.hpp
-/usr/local/cuda/include/sm_32_intrinsics.hpp
-
-/usr/local/cuda/include/sm_32_intrinsics.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/sm_35_atomic_functions.h
-sm_32_atomic_functions.h
-/usr/local/cuda/include/sm_32_atomic_functions.h
-
-/usr/local/cuda/include/sm_35_intrinsics.h
-sm_32_intrinsics.h
-/usr/local/cuda/include/sm_32_intrinsics.h
-
-/usr/local/cuda/include/sm_60_atomic_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-sm_60_atomic_functions.hpp
-/usr/local/cuda/include/sm_60_atomic_functions.hpp
-
-/usr/local/cuda/include/sm_60_atomic_functions.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/sm_61_intrinsics.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-sm_61_intrinsics.hpp
-/usr/local/cuda/include/sm_61_intrinsics.hpp
-
-/usr/local/cuda/include/sm_61_intrinsics.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
-/usr/local/cuda/include/surface_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-cuda_surface_types.h
-/usr/local/cuda/include/cuda_surface_types.h
-
-/usr/local/cuda/include/surface_indirect_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
 /usr/local/cuda/include/surface_types.h
 driver_types.h
 /usr/local/cuda/include/driver_types.h
 
-/usr/local/cuda/include/texture_fetch_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-cuda_texture_types.h
-/usr/local/cuda/include/cuda_texture_types.h
-
-/usr/local/cuda/include/texture_indirect_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-
 /usr/local/cuda/include/texture_types.h
 driver_types.h
 /usr/local/cuda/include/driver_types.h
-
-/usr/local/cuda/include/vector_functions.h
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
-vector_functions.hpp
-/usr/local/cuda/include/vector_functions.hpp
-
-/usr/local/cuda/include/vector_functions.hpp
-cuda_runtime_api.h
-/usr/local/cuda/include/cuda_runtime_api.h
 
 /usr/local/cuda/include/vector_types.h
 crt/host_defines.h

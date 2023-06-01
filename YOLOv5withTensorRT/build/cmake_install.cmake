@@ -1,4 +1,4 @@
-# Install script for directory: /home/pip/Desktop/yolov5+tensorrt/yolov5
+# Install script for directory: /home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/pip-2/Desktop/PIP_VISION-dev/tensorRT yolov5.0/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
