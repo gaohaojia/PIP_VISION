@@ -51,9 +51,16 @@ TOLERANT_VALUE = 30
 容错值:
     预测坐标的容错范围（像素）。
 """
+RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
+"""
+运行目录:
+    自动获取当前代码运行的目录。
+"""
 
 frame = None # 当前图像
-run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
+detect_frame = None # 被用于检测的图像
+detect_data = None # 检测数据
+categories = None # 被使用的标签集
 
 # 一些相机参数常量，用于计算显示距离
 fx = 1056.4967111
@@ -267,7 +274,7 @@ class listening_ser(threading.Thread):
 
 class get_frame(threading.Thread):
     """
-    description:   用多线程获取图像，提高速度。
+    description:   用于获取图像的线程。
     """
     def __init__(self):
         """
@@ -289,6 +296,35 @@ class get_frame(threading.Thread):
             raw_frame = self.buffer.get_frame()                                                                # 获取相机图像
             frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
             time.sleep(0.003)
+
+class calculate_and_trans(threading.Thread):
+    """
+    description:   用于进行计算和传输的线程。
+    """
+    def __init__(self, result_boxes, CF_wrapper, ser):
+        """
+        description:   初始化线程与相机。
+        param:
+            result_boxes:   boxes类。
+            CF_wrapper:     友军保护类（check_friends_wrapper）。
+            ser:            串口信息。
+        """
+        threading.Thread.__init__(self)
+        self.result_boxes = result_boxes
+        self.CF_wrapper = CF_wrapper
+        self.ser = ser
+
+    def run(self):
+        global detect_data, detect_frame                                                       # 获取全局变量
+        self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
+        detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
+        trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
+        if minBox_idx != -1:                                                                   # 在图片上绘制检测框
+            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], detect_frame,
+                                   label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
+                                   self.result_boxes.scores[minBox_idx]), )
+        cv2.waitKey(1) 
+        cv2.imshow("Result", detect_frame) # 显示图像输出
             
 
 if __name__ == "__main__":
@@ -299,13 +335,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', nargs='?', type=int, default=7, help='The engine version that will be used. Default 5.')
     parser.add_argument('--engine', nargs='?', type=str, 
-                        default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
+                        default=RUN_PATH+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='?', type=str, 
-                        default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
+                        default=RUN_PATH+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
     parser.add_argument('--color', nargs='?', type=int, default=1, help='Friend\'s color, 1 is red (default), 2 is blue.')
     parser.add_argument('--mode', nargs='?', type=str, default="debug", help='Running mode. debug (default) or release.')
     parser.add_argument('--image', nargs='?', type=str, default=None, help='Test image path. Default no test image.')
     opt = parser.parse_args()
+
     RUN_MODE = 1 if opt.mode == "debug" else 0                                  # 保存运行模式
     ctypes.CDLL(opt.library)                                                    # 调用TensorRT所需的library库
     ENGINE_FILE_PATH = opt.engine                                               # 保存模型文件目录
@@ -317,7 +354,7 @@ if __name__ == "__main__":
     if RUN_MODE:
         print("\n\n\nDebug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
-    check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
+    check_friends_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
     if opt.image is None:                                                                     # 判断是否为图像测试模式
         get_frame_thread = get_frame()                                                        # 启动获取图像线程
@@ -330,38 +367,26 @@ if __name__ == "__main__":
     listening_thread = listening_ser()  # 运行监听线程
     listening_thread.start()
     '''
+
     detect_data = data() # 初始化数据信息
     # 循环检测目标与发送信息
     while 1:
         try:
             side1 = time.time() # 计时开始
             
-            result = yolov5_wrapper.infer(frame)                                                           # 用YOLOv5检测目标
-            result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
+            detect_frame = frame
+            result = yolov5_wrapper.infer(detect_frame)                                    # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
+            side2 = time.time()                                                            # 结束计时
 
-            side2 = time.time()
-            result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                               # 得到敌军的boxes信息
+            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)      # 启动计算线程
+            CAT_thread.start()
+
+            detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
             
-            side3 = time.time()
-            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                            # 计算测量结果
-            trans_detect_data(ser, detect_data)                                                            # 发送检测结果
-
-            if minBox_idx != -1:                                                                           # 在图片上绘制检测框
-                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], frame,
-                                       label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
-                                       result_boxes.scores[minBox_idx]), )
-
-            side4 = time.time()                                     # 结束计时
-            detect_data.pre_time = (side4 - side1) * 1000           # 统计用时
- 
-            cv2.waitKey(1) 
-            cv2.imshow("Result", frame)                           # 显示图像输出
             if RUN_MODE: 
                 # 输出用时
                 print(f"\nTotal Time: {detect_data.pre_time}ms")
-                print(f"Detect Time: {(side2 - side1) * 1000}ms")
-                print(f"Get Enemy Time: {(side3 - side2) * 1000}ms")
-                print(f"Calculate Time: {(side4 - side3) * 1000}ms")
  
         except Exception as e:
             print(e)
