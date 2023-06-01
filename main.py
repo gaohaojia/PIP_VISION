@@ -266,22 +266,29 @@ class listening_ser(threading.Thread):
                 pass
 
 class get_frame(threading.Thread):
+    """
+    description:   用多线程获取图像，提高效率。
+    """
     def __init__(self):
+        """
+        description:   初始化线程与相机。
+        """
         threading.Thread.__init__(self)
+
+    def run(self):
+        """
+        description:   循环获取图像。
+        """
+        global frame
         try:
             self.buffer = init_camera.buffer()
         except:
-            self.buffer = None
-
-    def run(self):
-        global frame
-        if self.buffer == None:
             frame = cv2.imread("images/000001.jpeg")
             return
         while(1):
             frame = self.buffer.get_frame()                                                                # 获取相机图像
             frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
-            time.sleep(0.001)
+            time.sleep(0.003)
             
 
 if __name__ == "__main__":
