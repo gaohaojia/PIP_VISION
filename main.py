@@ -283,7 +283,8 @@ class get_frame(threading.Thread):
         try:
             self.buffer = init_camera.buffer()
         except:
-            frame = cv2.resize(cv2.imread("images/000001.jpeg"), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
+            raw_frame = cv2.imread("images/000001.jpeg")
+            frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
             return
         while(1):
             raw_frame = self.buffer.get_frame()                                                                # 获取相机图像
@@ -323,7 +324,8 @@ if __name__ == "__main__":
         get_frame_thread = get_frame()                                                            # 启动获取图像线程
         get_frame_thread.start()
     else:
-        frame = cv2.resize(cv2.imread("images/" + opt.image), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
+        raw_frame = ("images/" + opt.image)
+        frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
 
     ''' 待与电控测试
     listening_thread = listening_ser()  # 运行监听线程
