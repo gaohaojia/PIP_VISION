@@ -305,12 +305,11 @@ if __name__ == "__main__":
     ENGINE_VERSION = opt.version
     categories = categories7 if ENGINE_VERSION == 7 else categories5
 
+    ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
+    yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     if RUN_MODE:
         print("\n\n\nDebug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
-
-    ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
-    yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
     if opt.image == "":
