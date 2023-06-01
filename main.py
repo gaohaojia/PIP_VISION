@@ -315,6 +315,9 @@ class calculate_and_trans(threading.Thread):
         self.ser = ser
 
     def run(self):
+        """
+        description:   线程主进程。
+        """
         global detect_data, detect_frame                                                       # 获取全局变量
         self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
         detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
@@ -350,7 +353,7 @@ if __name__ == "__main__":
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     if RUN_MODE:
-        print("\n\n\nDebug Mode.")
+        print("\nDebug Mode.")
         print(f"Enginepath: {ENGINE_FILE_PATH}")
     check_friends_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
@@ -387,7 +390,7 @@ if __name__ == "__main__":
             
             if RUN_MODE: 
                 # 输出用时
-                print(f"\nTotal Time: {detect_data.pre_time}ms")
+                print(f"Total Time: {detect_data.pre_time}ms")
  
         except Exception as e:
             print(e)
