@@ -51,6 +51,13 @@ python3 main.py
 ```
 
 ## 版本修改
+### v1.2.0
+- 更改TensorRT版本。
+- 拆出check_friends.py文件。
+- 新增预测算法，在不提高延迟的情况下提高稳定度。
+- 新增test image模式，可直接用官方图片测试模型。
+- 优化代码结构。
+- 摄像头通过多线程调用，降低调用耗时。
 ### v1.1.0
 - 建立cam_conf文件夹，保存相机相关代码，并将mvsdk.py放入cam_conf文件夹内。
 - 将detect.py文件拆分，拆为main.py、init_camera.py、yolov5TRT.py。将init_camera放入cam_conf文件夹下。
