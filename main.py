@@ -323,8 +323,6 @@ class calculate_and_trans(threading.Thread):
             yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], detect_frame,
                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
                                    self.result_boxes.scores[minBox_idx]), )
-        cv2.waitKey(1) 
-        cv2.imshow("Result", detect_frame) # 显示图像输出
             
 
 if __name__ == "__main__":
@@ -356,11 +354,11 @@ if __name__ == "__main__":
         print(f"Enginepath: {ENGINE_FILE_PATH}")
     check_friends_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
-    if opt.image is None:                                                                     # 判断是否为图像测试模式
-        get_frame_thread = get_frame()                                                        # 启动获取图像线程
+    if opt.image is None:                                                                      # 判断是否为图像测试模式
+        get_frame_thread = get_frame()                                                         # 启动获取图像线程
         get_frame_thread.start()
     else:
-        raw_frame = cv2.imread("images/" + opt.image)                                         # 读入欲测试的图片
+        raw_frame = cv2.imread("images/" + opt.image)                                          # 读入欲测试的图片
         frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
 
     ''' 待与电控测试
@@ -379,10 +377,13 @@ if __name__ == "__main__":
             result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
             side2 = time.time()                                                            # 结束计时
 
-            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)      # 启动计算线程
+            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)     # 启动计算线程
             CAT_thread.start()
 
             detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
+
+            cv2.waitKey(1) 
+            cv2.imshow("Result", detect_frame) # 显示图像输出
             
             if RUN_MODE: 
                 # 输出用时
