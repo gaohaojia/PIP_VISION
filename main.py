@@ -51,11 +51,6 @@ TOLERANT_VALUE = 30
 容错值:
     预测坐标的容错范围（像素）。
 """
-TEST_IMAGE = cv2.imread("images/000001.jpeg")
-"""
-测试用图片:
-    当摄像头不能使用时，用该图片代替。
-"""
 
 frame = None # 当前图像
 run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
@@ -281,7 +276,7 @@ class get_frame(threading.Thread):
     def run(self):
         global frame
         if self.buffer == None:
-            frame = TEST_IMAGE
+            frame = cv2.imread("images/000001.jpeg")
             return
         while(1):
             frame = self.buffer.get_frame()                                                                # 获取相机图像
@@ -295,13 +290,14 @@ if __name__ == "__main__":
     """
     # 获取调试参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', nargs='+', type=int, default=5, help='The engine version that will be used. Default 5.')
+    parser.add_argument('--version', nargs='+', type=int, default=7, help='The engine version that will be used. Default 5.')
     parser.add_argument('--engine', nargs='+', type=str, 
                         default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
     parser.add_argument('--library', nargs='+', type=str, 
                         default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
     parser.add_argument('--color', nargs='+', type=int, default=1, help='Friend\'s color, 1 is red (default), 2 is blue.')
     parser.add_argument('--mode', nargs='+', type=str, default="debug", help='Running mode. debug (default) or release.')
+    parser.add_argument('--image', nargs='+', type=str, default="", help='Test image path. Default no test image.')
     opt = parser.parse_args()
     RUN_MODE = 1 if opt.mode == "debug" else 0
     ctypes.CDLL(opt.library)
@@ -317,8 +313,11 @@ if __name__ == "__main__":
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
     check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
-    get_frame_thread = get_frame()                                                            # 启动获取图像线程
-    get_frame_thread.start()
+    if opt.image == "":
+        get_frame_thread = get_frame()                                                            # 启动获取图像线程
+        get_frame_thread.start()
+    else:
+        frame = cv2.imread("images/" + opt.image)
 
     ''' 待与电控测试
     listening_thread = listening_ser()  # 运行监听线程
