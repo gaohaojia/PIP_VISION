@@ -119,7 +119,7 @@ class YoLov5TRT(object):
         batch_origin_h = []
         batch_origin_w = []
         batch_input_image = np.empty(shape=[self.batch_size, 3, self.input_h, self.input_w])
-        input_image, image_raw, origin_h, origin_w = self.preprocess_image(input_image_path)
+        input_image, image_raw, origin_h, origin_w = self.preprocess_image(self.input_image_path)
         batch_origin_h.append(origin_h)
         batch_origin_w.append(origin_w)
         np.copyto(batch_input_image, input_image)
@@ -142,8 +142,7 @@ class YoLov5TRT(object):
         # Here we use the first row of output in that batch_size = 1
         output = host_outputs[0]
         # Do postprocess
-        result_boxes, result_scores, result_classid = self.post_process(
-            output, origin_h, origin_w)
+        result_boxes, result_scores, result_classid = self.post_process(output, origin_h, origin_w)
         
         return (result_boxes, result_scores, result_classid)
 

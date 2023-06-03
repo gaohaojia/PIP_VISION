@@ -69,7 +69,7 @@ class check_friends():
             非友军参数。
         """
         new = []
-        for i in all.numpy().tolist():
+        for i in all.tolist():
             if i not in (friends):
                 new.append(i)
         return np.array(new)
@@ -88,8 +88,8 @@ class check_friends():
         exit_friends_id = []
         friends_id = []
         for ii in range(len(result_boxes.classid)):
-            if int(result_boxes.classid.numpy()[ii]) in self.friends_list:
-                friends_id.append(int(result_boxes.classid.numpy()[ii]))
+            if int(result_boxes.classid[ii]) in self.friends_list:
+                friends_id.append(int(result_boxes.classid[ii]))
                 exit_friends_boxes.append(result_boxes.boxes[ii])
                 exit_friends_scores.append(result_boxes.scores[ii])
                 exit_friends_id.append(result_boxes.classid[ii])
@@ -97,9 +97,9 @@ class check_friends():
 
         # 获取敌军的列表以及id
         try:
-            for i in result_boxes.classid.numpy():
+            for i in result_boxes.classid:
                 if int(i) not in friends_id:
-                    dex_tem = ((np.where(result_boxes.classid.numpy() == i))[0][0])
+                    dex_tem = ((np.where(result_boxes.classid == i))[0][0])
                     enemy_list_index.append(dex_tem)
         except:
             pass
