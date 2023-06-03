@@ -299,21 +299,23 @@ class calculate_and_trans(threading.Thread):
     """
     description:   用于进行计算和传输的线程。
     """
-    def __init__(self):
-        threading.Thread.__init__(self)
-
-    def run(self, result_boxes, CF_wrapper, ser):
+    def __init__(self, result_boxes, CF_wrapper, ser):
         """
-        description:   线程主进程。
+        description:   初始化线程和参数。
         param:
             result_boxes:   boxes类。
             CF_wrapper:     友军保护类（check_friends_wrapper）。
             ser:            串口信息。
         """
+        threading.Thread.__init__(self)
         self.result_boxes = result_boxes
         self.CF_wrapper = CF_wrapper
         self.ser = ser
 
+    def run(self):
+        """
+        description:   线程主进程。
+        """
         global detect_data, result_frame                                                       # 获取全局变量
         self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
         detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
@@ -397,8 +399,8 @@ if __name__ == "__main__":
             result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
             side2 = time.time()                                                            # 结束计时
 
-            CAT_thread = calculate_and_trans()     # 启动计算线程
-            CAT_thread.start(result_boxes, check_friends_wrapper, ser)
+            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)     # 启动计算线程
+            CAT_thread.start()
 
             detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
             
