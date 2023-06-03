@@ -404,6 +404,7 @@ if __name__ == "__main__":
     # 循环检测目标与发送信息
     while 1:
         try:
+            assert not frame is None, "Waiting Camera."
             side1 = time.time() # 计时开始
             
             detect_frame = frame
@@ -420,5 +421,5 @@ if __name__ == "__main__":
                 # 输出用时
                 print(f"Total Time: {detect_data.pre_time}ms")
  
-        except Exception as e:
-            print(e)
+        except:
+            pass
