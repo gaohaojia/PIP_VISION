@@ -60,6 +60,7 @@ RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
 frame = None # 当前图像
 detect_frame = None # 被用于检测的图像
 result_frame = None # 结果图像
+show_frame = None # 用于输出的图像
 detect_data = None # 检测数据
 categories = None # 被使用的标签集
 
@@ -316,7 +317,7 @@ class calculate_and_trans(threading.Thread):
         """
         description:   线程主进程。
         """
-        global detect_data, result_frame                                                       # 获取全局变量
+        global detect_data, result_frame, show_frame                                           # 获取全局变量
         result_frame = detect_frame
         if RUN_MODE:
             for i in range(len(self.result_boxes.boxes)):                                      # 在图像上绘制所有检测框
@@ -332,6 +333,7 @@ class calculate_and_trans(threading.Thread):
             yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame, [255, 0, 0],
                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
                                    self.result_boxes.scores[minBox_idx]), )
+        show_frame = result_frame
             
 class show_result_image(threading.Thread):
     """
@@ -346,7 +348,7 @@ class show_result_image(threading.Thread):
         """
         while(1):
             try:
-                cv2.imshow("Result", result_frame) # 显示图像输出
+                cv2.imshow("Result", show_frame) # 显示图像输出
                 cv2.waitKey(1)
             except:
                 pass
