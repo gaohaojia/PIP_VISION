@@ -317,12 +317,19 @@ class calculate_and_trans(threading.Thread):
         description:   线程主进程。
         """
         global detect_data, result_frame                                                       # 获取全局变量
+        result_frame = detect_frame
+        if RUN_MODE:
+            for i in range(len(self.result_boxes.boxes)):                                      # 在图像上绘制所有检测框
+                yolov5TRT.plot_one_box(self.result_boxes.boxes[i], result_frame, [192,192,192],
+                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[i])], 
+                                    self.result_boxes.scores[i]), )
+            
         self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
         detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
         trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
-        result_frame = detect_frame
-        if minBox_idx != -1:                                                                   # 在图片上绘制检测框
-            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame,
+
+        if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
+            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame, [255, 0, 0],
                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
                                    self.result_boxes.scores[minBox_idx]), )
             
