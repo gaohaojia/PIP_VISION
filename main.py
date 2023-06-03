@@ -62,7 +62,10 @@ detect_frame = None # 被用于检测的图像
 result_frame = None # 结果图像
 show_frame = None # 用于输出的图像
 detect_data = None # 检测数据
+result_boxes = None # 检测的结果
 categories = None # 被使用的标签集
+buffer = None # 摄像头
+is_need_calculate = False # 是否需要进行计算
 
 # 一些相机参数常量，用于计算显示距离
 fx = 1056.4967111
@@ -289,12 +292,8 @@ class get_frame(threading.Thread):
         description:   循环获取图像。
         """
         global frame
-        try:
-            self.buffer = init_camera.buffer()
-        except:
-            os.exit()
         while(1):
-            raw_frame = self.buffer.get_frame()                                                                # 获取相机图像
+            raw_frame = buffer.get_frame()                                                                     # 获取相机图像
             frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
             time.sleep(0.003)
 
@@ -302,16 +301,14 @@ class calculate_and_trans(threading.Thread):
     """
     description:   用于进行计算和传输的线程。
     """
-    def __init__(self, result_boxes, CF_wrapper, ser):
+    def __init__(self, CF_wrapper, ser):
         """
         description:   初始化线程和参数。
         param:
-            result_boxes:   boxes类。
             CF_wrapper:     友军保护类（check_friends_wrapper）。
             ser:            串口信息。
         """
         threading.Thread.__init__(self)
-        self.result_boxes = result_boxes
         self.CF_wrapper = CF_wrapper
         self.ser = ser
 
@@ -319,23 +316,26 @@ class calculate_and_trans(threading.Thread):
         """
         description:   线程主进程。
         """
-        global detect_data, result_frame, show_frame                                           # 获取全局变量
-        result_frame = detect_frame
-        if RUN_MODE:
-            for i in range(len(self.result_boxes.boxes)):                                      # 在图像上绘制所有检测框
-                yolov5TRT.plot_one_box(self.result_boxes.boxes[i], result_frame, [192,192,192],
-                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[i])], 
-                                    self.result_boxes.scores[i]), )
-            
-        self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
-        detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
-        trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
+        global detect_data, result_frame, show_frame, result_boxes                                 # 获取全局变量
+        while (1):
+            if not is_need_calculate:
+                continue
+            result_frame = detect_frame
+            if RUN_MODE:
+                for i in range(len(result_boxes.boxes)):                                           # 在图像上绘制所有检测框
+                    yolov5TRT.plot_one_box(result_boxes.boxes[i], result_frame, [192,192,192],
+                                        label="{}:{:.2f}".format(categories[int(result_boxes.classid[i])], 
+                                        result_boxes.scores[i]), )
+                
+            result_boxes = self.CF_wrapper.get_enemy_info(result_boxes)                            # 获取敌方目标
+            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                    # 计算测量结果
+            trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
 
-        if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
-            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame, [0, 0, 255],
-                                   label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
-                                   self.result_boxes.scores[minBox_idx]), )
-        show_frame = result_frame
+            if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
+                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], result_frame, [0, 0, 255],
+                                    label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
+                                    result_boxes.scores[minBox_idx]), )
+            show_frame = result_frame
             
 class show_result_image(threading.Thread):
     """
@@ -386,6 +386,10 @@ if __name__ == "__main__":
     check_friends_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
     if opt.image is None:                                                                      # 判断是否为图像测试模式
+        try:
+            buffer = init_camera.buffer()                                                      # 获取摄像头
+        except:
+            os.exit()
         get_frame_thread = get_frame()                                                         # 启动获取图像线程
         get_frame_thread.start()
     else:
@@ -396,14 +400,17 @@ if __name__ == "__main__":
     listening_thread.start()
     '''
 
+    CAT_thread = calculate_and_trans(check_friends_wrapper, ser)     # 启动计算线程
+    CAT_thread.start()
+
     show_result_image_thread = show_result_image()
     show_result_image_thread.start()
 
     detect_data = data() # 初始化数据信息
+    
     # 循环检测目标与发送信息
     while 1:
         try:
-            assert not frame is None, "Waiting Camera."
             side1 = time.time() # 计时开始
             
             detect_frame = frame
@@ -411,8 +418,7 @@ if __name__ == "__main__":
             result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
             side2 = time.time()                                                            # 结束计时
 
-            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)     # 启动计算线程
-            CAT_thread.start()
+            is_need_calculate = True
 
             detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
             
