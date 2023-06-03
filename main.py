@@ -292,8 +292,7 @@ class get_frame(threading.Thread):
         try:
             self.buffer = init_camera.buffer()
         except:
-            frame = cv2.resize(cv2.imread("images/000001.jpeg"), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
-            return
+            os.exit()
         while(1):
             raw_frame = self.buffer.get_frame()                                                                # 获取相机图像
             frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
