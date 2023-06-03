@@ -330,7 +330,7 @@ class calculate_and_trans(threading.Thread):
         trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
 
         if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
-            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame, [255, 0, 0],
+            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame, [0, 255, 0],
                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
                                    self.result_boxes.scores[minBox_idx]), )
         show_frame = result_frame
