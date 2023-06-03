@@ -8,15 +8,6 @@ import numpy as np
 import pycuda.driver as cuda
 import pycuda.autoinit # 勿删，该包有调用，灰色是编译器问题。
 import tensorrt as trt
-import torch
-import torchvision
-
-check_fr = 0
-fr = []
-
-# 对目标下一帧X,Y坐标的预测值
-pre_x = 0
-pre_y = 0
 
 def plot_one_box(x, img, color=None, label=None, line_thickness=None):
     """
@@ -128,7 +119,7 @@ class YoLov5TRT(object):
         batch_origin_h = []
         batch_origin_w = []
         batch_input_image = np.empty(shape=[self.batch_size, 3, self.input_h, self.input_w])
-        input_image, image_raw, origin_h, origin_w = self.preprocess_image(input_image_path)
+        input_image, image_raw, origin_h, origin_w = self.preprocess_image(self.input_image_path)
         batch_origin_h.append(origin_h)
         batch_origin_w.append(origin_w)
         np.copyto(batch_input_image, input_image)
@@ -151,8 +142,7 @@ class YoLov5TRT(object):
         # Here we use the first row of output in that batch_size = 1
         output = host_outputs[0]
         # Do postprocess
-        result_boxes, result_scores, result_classid = self.post_process(
-            output, origin_h, origin_w)
+        result_boxes, result_scores, result_classid = self.post_process(output, origin_h, origin_w)
         
         return (result_boxes, result_scores, result_classid)
 
@@ -209,7 +199,7 @@ class YoLov5TRT(object):
         image = cv2.resize(image, (tw, th))
         # Pad the short side with (128,128,128)
         image = cv2.copyMakeBorder(
-            image, ty1, ty2, tx1, tx2, cv2.BORDER_CONSTANT, (128, 128, 128)
+            image, ty1, ty2, tx1, tx2, cv2.BORDER_CONSTANT, None, (128, 128, 128)
         )
         image = image.astype(np.float32)
         # Normalize to [0,1]
@@ -228,11 +218,11 @@ class YoLov5TRT(object):
         param:
             origin_h:   height of original image
             origin_w:   width of original image
-            x:          A boxes tensor, each row is a box [center_x, center_y, w, h]
+            x:          A boxes numpy, each row is a box [center_x, center_y, w, h]
         return:
-            y:          A boxes tensor, each row is a box [x1, y1, x2, y2]
+            y:          A boxes numpy, each row is a box [x1, y1, x2, y2]
         """
-        y = torch.zeros_like(x) if isinstance(x, torch.Tensor) else np.zeros_like(x)
+        y = np.zeros_like(x)
         r_w = self.input_w / origin_w
         r_h = self.input_h / origin_h
         if r_h > r_w:
@@ -255,42 +245,97 @@ class YoLov5TRT(object):
         """
         description: postprocess the prediction
         param:
-            output:     A tensor likes [num_boxes,cx,cy,w,h,conf,cls_id, cx,cy,w,h,conf,cls_id, ...]
+            output:     A numpy likes [num_boxes,cx,cy,w,h,conf,cls_id, cx,cy,w,h,conf,cls_id, ...] 
             origin_h:   height of original image
             origin_w:   width of original image
         return:
-            result_boxes: finally boxes, a boxes tensor, each row is a box [x1, y1, x2, y2]
-            result_scores: finally scores, a tensor, each element is the score correspoing to box
-            result_classid: finally classid, a tensor, each element is the classid correspoing to box
+            result_boxes: finally boxes, a boxes numpy, each row is a box [x1, y1, x2, y2]
+            result_scores: finally scores, a numpy, each element is the score correspoing to box
+            result_classid: finally classid, a numpy, each element is the classid correspoing to box
         """
         # Get the num of boxes detected
         num = int(output[0])
         # Reshape to a two dimentional ndarray
-        pred = np.reshape(output[1:], (-1, 6))[:num, :]
-
-        # 这里针对比赛和机器人进行了代码添加
-        # 主要功能是锚框 置信度 标号的转换融合操作
-        # to a torch Tensor
-        pred = torch.Tensor(pred).cuda()
-        # Get the boxes
-        boxes = pred[:, :4]
-        # Get the scores
-        scores = pred[:, 4]
-        # Get the classid
-        classid = pred[:, 5]
-        # Choose those boxes that score > CONF_THRESH
-        si = scores > self.conf_thresh
-        boxes = boxes[si, :]
-        scores = scores[si]
-        classid = classid[si]
-        # Trandform bbox from [center_x, center_y, w, h] to [x1, y1, x2, y2]
-        boxes = self.xywh2xyxy(origin_h, origin_w, boxes)
-        # 代码添加到这里结束
-        
-        # TODO:值得注意的是，下面nms算法在cpu中进行，而nms算法是十分耗费资源的，这是优化的切入点之一
+        pred = np.reshape(output[1:], (-1, 38))[:num, :]
+        pred = pred[:, :6]
         # Do nms
-        indices = torchvision.ops.nms(boxes, scores, iou_threshold=self.iou_threshold).cpu()
-        result_boxes = boxes[indices, :].cpu()
-        result_scores = scores[indices].cpu()
-        result_classid = classid[indices].cpu()
+        boxes = self.non_max_suppression(pred, origin_h, origin_w, conf_thres=self.conf_thresh, nms_thres=self.iou_threshold)
+        result_boxes = boxes[:, :4] if len(boxes) else np.array([])
+        result_scores = boxes[:, 4] if len(boxes) else np.array([])
+        result_classid = boxes[:, 5] if len(boxes) else np.array([])
         return result_boxes, result_scores, result_classid
+
+    def bbox_iou(self, box1, box2, x1y1x2y2=True):
+        """
+        description: compute the IoU of two bounding boxes
+        param:
+            box1: A box coordinate (can be (x1, y1, x2, y2) or (x, y, w, h))
+            box2: A box coordinate (can be (x1, y1, x2, y2) or (x, y, w, h))            
+            x1y1x2y2: select the coordinate format
+        return:
+            iou: computed iou
+        """
+        if not x1y1x2y2:
+            # Transform from center and width to exact coordinates
+            b1_x1, b1_x2 = box1[:, 0] - box1[:, 2] / 2, box1[:, 0] + box1[:, 2] / 2
+            b1_y1, b1_y2 = box1[:, 1] - box1[:, 3] / 2, box1[:, 1] + box1[:, 3] / 2
+            b2_x1, b2_x2 = box2[:, 0] - box2[:, 2] / 2, box2[:, 0] + box2[:, 2] / 2
+            b2_y1, b2_y2 = box2[:, 1] - box2[:, 3] / 2, box2[:, 1] + box2[:, 3] / 2
+        else:
+            # Get the coordinates of bounding boxes
+            b1_x1, b1_y1, b1_x2, b1_y2 = box1[:, 0], box1[:, 1], box1[:, 2], box1[:, 3]
+            b2_x1, b2_y1, b2_x2, b2_y2 = box2[:, 0], box2[:, 1], box2[:, 2], box2[:, 3]
+
+        # Get the coordinates of the intersection rectangle
+        inter_rect_x1 = np.maximum(b1_x1, b2_x1)
+        inter_rect_y1 = np.maximum(b1_y1, b2_y1)
+        inter_rect_x2 = np.minimum(b1_x2, b2_x2)
+        inter_rect_y2 = np.minimum(b1_y2, b2_y2)
+        # Intersection area
+        inter_area = np.clip(inter_rect_x2 - inter_rect_x1 + 1, 0, None) * \
+                     np.clip(inter_rect_y2 - inter_rect_y1 + 1, 0, None)
+        # Union Area
+        b1_area = (b1_x2 - b1_x1 + 1) * (b1_y2 - b1_y1 + 1)
+        b2_area = (b2_x2 - b2_x1 + 1) * (b2_y2 - b2_y1 + 1)
+
+        iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
+
+        return iou
+
+    def non_max_suppression(self, prediction, origin_h, origin_w, conf_thres=0.5, nms_thres=0.4):
+        """
+        description: Removes detections with lower object confidence score than 'conf_thres' and performs
+        Non-Maximum Suppression to further filter detections.
+        param:
+            prediction: detections, (x1, y1, x2, y2, conf, cls_id)
+            origin_h: original image height
+            origin_w: original image width
+            conf_thres: a confidence threshold to filter detections
+            nms_thres: a iou threshold to filter detections
+        return:
+            boxes: output after nms with the shape (x1, y1, x2, y2, conf, cls_id)
+        """
+        # Get the boxes that score > CONF_THRESH
+        boxes = prediction[prediction[:, 4] >= conf_thres]
+        # Trandform bbox from [center_x, center_y, w, h] to [x1, y1, x2, y2]
+        boxes[:, :4] = self.xywh2xyxy(origin_h, origin_w, boxes[:, :4])
+        # clip the coordinates
+        boxes[:, 0] = np.clip(boxes[:, 0], 0, origin_w -1)
+        boxes[:, 2] = np.clip(boxes[:, 2], 0, origin_w -1)
+        boxes[:, 1] = np.clip(boxes[:, 1], 0, origin_h -1)
+        boxes[:, 3] = np.clip(boxes[:, 3], 0, origin_h -1)
+        # Object confidence
+        confs = boxes[:, 4]
+        # Sort by the confs
+        boxes = boxes[np.argsort(-confs)]
+        # Perform non-maximum suppression
+        keep_boxes = []
+        while boxes.shape[0]:
+            large_overlap = self.bbox_iou(np.expand_dims(boxes[0, :4], 0), boxes[:, :4]) > nms_thres
+            label_match = boxes[0, -1] == boxes[:, -1]
+            # Indices of boxes with lower confidence scores, large IOUs and matching labels
+            invalid = large_overlap & label_match
+            keep_boxes += [boxes[0]]
+            boxes = boxes[~invalid]
+        boxes = np.stack(keep_boxes, 0) if len(keep_boxes) else np.array([])
+        return boxes

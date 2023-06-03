@@ -45,10 +45,10 @@ class check_friends():
         # 根据我方红蓝方的设定，进行友军识别
         if ser.read() == b'\xff' or self.color == 1:
             self.color = 1  # red
-            self.friends = [0, 3, 6, 9, 12, 15] if self.ENGINE_VERSION == 7 else [0, 1, 2, 3]
+            self.friends = [0, 6, 9, 12, 15] if self.ENGINE_VERSION == 7 else [0, 1, 2, 3]
         elif ser.read() == b'\xaa' or self.color == 2:
             self.color = 2  # blue
-            self.friends = [1, 4, 7, 10, 13, 16] if self.ENGINE_VERSION == 7 else [4, 5, 6, 7]
+            self.friends = [1, 7, 10, 13, 16] if self.ENGINE_VERSION == 7 else [4, 5, 6, 7]
         if self.RUN_MODE:
             print(f"Friend id: {self.friends}") if self.friends else print("No friend id!")
 
@@ -57,7 +57,7 @@ class check_friends():
         if self.check_fr == 0 and self.friends:
             fr = self.friends
             self.check_fr = 1
-        self.friends_list = fr + ([2, 5, 8, 11, 14, 17, 19, 20, 21] if self.ENGINE_VERSION == 7 else [8, 9, 10, 11])
+        self.friends_list = fr + ([2, 3, 4, 5, 8, 11, 14, 17, 19, 20] if self.ENGINE_VERSION == 7 else [8, 9, 10, 11])
 
     def get_nonfriend_from_all(self, all, friends):
         """
@@ -69,7 +69,7 @@ class check_friends():
             非友军参数。
         """
         new = []
-        for i in all.numpy().tolist():
+        for i in all.tolist():
             if i not in (friends):
                 new.append(i)
         return np.array(new)
@@ -88,8 +88,8 @@ class check_friends():
         exit_friends_id = []
         friends_id = []
         for ii in range(len(result_boxes.classid)):
-            if int(result_boxes.classid.numpy()[ii]) in self.friends_list:
-                friends_id.append(int(result_boxes.classid.numpy()[ii]))
+            if int(result_boxes.classid[ii]) in self.friends_list:
+                friends_id.append(int(result_boxes.classid[ii]))
                 exit_friends_boxes.append(result_boxes.boxes[ii])
                 exit_friends_scores.append(result_boxes.scores[ii])
                 exit_friends_id.append(result_boxes.classid[ii])
@@ -97,9 +97,9 @@ class check_friends():
 
         # 获取敌军的列表以及id
         try:
-            for i in result_boxes.classid.numpy():
+            for i in result_boxes.classid:
                 if int(i) not in friends_id:
-                    dex_tem = ((np.where(result_boxes.classid.numpy() == i))[0][0])
+                    dex_tem = ((np.where(result_boxes.classid == i))[0][0])
                     enemy_list_index.append(dex_tem)
         except:
             pass

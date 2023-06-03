@@ -51,13 +51,18 @@ TOLERANT_VALUE = 30
 容错值:
     预测坐标的容错范围（像素）。
 """
-TEST_IMAGE = cv2.imread("images/000001.jpeg")
+RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
 """
-测试用图片:
-    当摄像头不能使用时，用该图片代替。
+运行目录:
+    自动获取当前代码运行的目录。
 """
 
-run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
+frame = None # 当前图像
+detect_frame = None # 被用于检测的图像
+result_frame = None # 结果图像
+show_frame = None # 用于输出的图像
+detect_data = None # 检测数据
+categories = None # 被使用的标签集
 
 # 一些相机参数常量，用于计算显示距离
 fx = 1056.4967111
@@ -81,7 +86,7 @@ categories7 = ["armor1red", "armor1blue", "armor1grey",
                "armor4red", "armor4blue", "armor4grey",
                "armor5red", "armor5blue", "armor5grey",
                "armor7red", "armor7blue", "armor7grey",
-               "bluewait", "bluedone", "nonactivate", "reddone", "redwait"]
+               "wait", "nonactivate", "done"]
 
 class boxes():
     """
@@ -102,7 +107,7 @@ class data():
     """
     description: 用于存储被检测目标的各种信息。
     """
-    def __init__(self, now_x=-1, now_y=-1, last_x=-1, last_y=-1, distance=-1, pre_time=-1):
+    def __init__(self, now_x=-1, now_y=-1, last_x=-1, last_y=-1, delta_x = -1, delta_y = -1, distance=-1, pre_time=-1):
         """
         param:
             now_x:     当前帧的x坐标。
@@ -116,6 +121,8 @@ class data():
         self.now_y = now_y
         self.last_x = last_x
         self.last_y = last_y
+        self.delta_x = delta_x
+        self.delta_y = delta_y
         self.distance = distance
         self.pre_time = pre_time
 
@@ -160,15 +167,16 @@ def calculate_data(result_boxes, detect_data):
     if result_boxes.boxes:
 
         # 计算与前一帧的偏移
-        delta_x = detect_data.now_x - detect_data.last_x
-        delta_y = detect_data.now_y - detect_data.last_y
+        if detect_data.last_x != -1 and detect_data.now_x != -1:
+            detect_data.delta_x = detect_data.now_x - detect_data.last_x
+            detect_data.delta_y = detect_data.now_y - detect_data.last_y
 
         # 判断偏移量是否在容忍范围内
-        if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.last_x != -1 and detect_data.now_x != -1:
+        if detect_data.delta_x ** 2 + detect_data.delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.delta_x != -1:
 
             # 计算与预测值之间的标准差
-            pre_x = detect_data.now_x + delta_x
-            pre_y = detect_data.now_y + delta_y
+            pre_x = detect_data.now_x + detect_data.delta_x
+            pre_y = detect_data.now_y + detect_data.delta_y
             dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - pre_x) ** 2 + 
                               ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - pre_y) ** 2) 
                               for i in range(len(result_boxes.boxes))]
@@ -269,79 +277,149 @@ class listening_ser(threading.Thread):
             except:
                 pass
 
+class get_frame(threading.Thread):
+    """
+    description:   用于获取图像的线程。
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        """
+        description:   循环获取图像。
+        """
+        global frame
+        try:
+            self.buffer = init_camera.buffer()
+        except:
+            frame = cv2.resize(cv2.imread("images/000001.jpeg"), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
+            return
+        while(1):
+            raw_frame = self.buffer.get_frame()                                                                # 获取相机图像
+            frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+            time.sleep(0.003)
+
+class calculate_and_trans(threading.Thread):
+    """
+    description:   用于进行计算和传输的线程。
+    """
+    def __init__(self, result_boxes, CF_wrapper, ser):
+        """
+        description:   初始化线程和参数。
+        param:
+            result_boxes:   boxes类。
+            CF_wrapper:     友军保护类（check_friends_wrapper）。
+            ser:            串口信息。
+        """
+        threading.Thread.__init__(self)
+        self.result_boxes = result_boxes
+        self.CF_wrapper = CF_wrapper
+        self.ser = ser
+
+    def run(self):
+        """
+        description:   线程主进程。
+        """
+        global detect_data, result_frame, show_frame                                           # 获取全局变量
+        result_frame = detect_frame
+        if RUN_MODE:
+            for i in range(len(self.result_boxes.boxes)):                                      # 在图像上绘制所有检测框
+                yolov5TRT.plot_one_box(self.result_boxes.boxes[i], result_frame, [192,192,192],
+                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[i])], 
+                                    self.result_boxes.scores[i]), )
+            
+        self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
+        detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
+        trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
+
+        if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
+            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame, [0, 0, 255],
+                                   label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
+                                   self.result_boxes.scores[minBox_idx]), )
+        show_frame = result_frame
+            
+class show_result_image(threading.Thread):
+    """
+    description:   用于输出结果图像的线程。
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        """
+        description:   循环输出图像。
+        """
+        while(1):
+            try:
+                cv2.imshow("Result", show_frame) # 显示图像输出
+                cv2.waitKey(1)
+            except:
+                pass
+
+
 if __name__ == "__main__":
     """
     description:   运行主函数。
     """
     # 获取调试参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', nargs='+', type=int, default=5, help='The engine version that will be used. Default 5.')
-    parser.add_argument('--engine', nargs='+', type=str, 
-                        default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
-    parser.add_argument('--library', nargs='+', type=str, 
-                        default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
-    parser.add_argument('--color', nargs='+', type=int, default=1, help='Friend\'s color, 1 is red (default), 2 is blue.')
-    parser.add_argument('--mode', nargs='+', type=str, default="debug", help='Running mode. debug (default) or release.')
+    parser.add_argument('--version', nargs='?', type=int, default=7, help='The engine version that will be used. Default 5.')
+    parser.add_argument('--engine', nargs='?', type=str, 
+                        default=RUN_PATH+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
+    parser.add_argument('--library', nargs='?', type=str, 
+                        default=RUN_PATH+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
+    parser.add_argument('--color', nargs='?', type=int, default=1, help='Friend\'s color, 1 is red (default), 2 is blue.')
+    parser.add_argument('--mode', nargs='?', type=str, default="debug", help='Running mode. debug (default) or release.')
+    parser.add_argument('--image', nargs='?', type=str, default=None, help='Test image path. Default no test image.')
     opt = parser.parse_args()
-    RUN_MODE = 1 if opt.mode == "debug" else 0
-    ctypes.CDLL(opt.library)
-    ENGINE_FILE_PATH = opt.engine
-    ENGINE_VERSION = opt.version
-    categories = categories7 if ENGINE_VERSION == 7 else categories5
 
-    if RUN_MODE:
-        print("\n\n\nDebug Mode.")
-        print(f"Enginepath: {ENGINE_FILE_PATH}")
+    RUN_MODE = 1 if opt.mode == "debug" else 0                                  # 保存运行模式
+    ctypes.CDLL(opt.library)                                                    # 调用TensorRT所需的library库
+    ENGINE_FILE_PATH = opt.engine                                               # 保存模型文件目录
+    ENGINE_VERSION = opt.version                                                # 保存模型版本
+    categories = categories7 if ENGINE_VERSION == 7 else categories5            # 保存类别版本
 
-    try:
-        buffer = init_camera.buffer()
-    except:
-        buffer = None
     ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
     yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
-    check_friend_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
+    if RUN_MODE:
+        print("\nDebug Mode.")
+        print(f"Enginepath: {ENGINE_FILE_PATH}")
+    check_friends_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
+
+    if opt.image is None:                                                                      # 判断是否为图像测试模式
+        get_frame_thread = get_frame()                                                         # 启动获取图像线程
+        get_frame_thread.start()
+    else:
+        frame = cv2.resize(cv2.imread("images/" + opt.image), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)  # 读入欲测试的图片
 
     ''' 待与电控测试
     listening_thread = listening_ser()  # 运行监听线程
     listening_thread.start()
     '''
+
+    show_result_image_thread = show_result_image()
+    show_result_image_thread.start()
+
     detect_data = data() # 初始化数据信息
     # 循环检测目标与发送信息
     while 1:
         try:
+            assert not frame is None, "Waiting Camera."
             side1 = time.time() # 计时开始
-
-            frame = buffer.get_frame() if not buffer is None else TEST_IMAGE                               # 获取相机图像
-            frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
-
-            side2 = time.time()
-            result = yolov5_wrapper.infer(frame)                                                           # 用YOLOv5检测目标
-            result_boxes = boxes(*result)                                                                  # 将结果转化为boxes类
-
-            side3 = time.time()
-            result_boxes = check_friend_wrapper.get_enemy_info(result_boxes)                               # 得到敌军的boxes信息
             
-            side4 = time.time()
-            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                            # 计算测量结果
-            trans_detect_data(ser, detect_data)                                                            # 发送检测结果
+            detect_frame = frame
+            result = yolov5_wrapper.infer(detect_frame)                                    # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
+            side2 = time.time()                                                            # 结束计时
 
-            if minBox_idx != -1:                                                                           # 在图片上绘制检测框
-                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], frame,
-                                       label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
-                                       result_boxes.scores[minBox_idx]), )
+            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)     # 启动计算线程
+            CAT_thread.start()
 
-            side5 = time.time()                                     # 结束计时
-            detect_data.pre_time = (side5 - side1) * 1000           # 统计用时
- 
-            cv2.waitKey(1) 
-            cv2.imshow("Result", frame)                           # 显示图像输出
+            detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
+            
             if RUN_MODE: 
                 # 输出用时
                 print(f"Total Time: {detect_data.pre_time}ms")
-                print(f"Get Frame Time: {(side2 - side1) * 1000}ms")
-                print(f"Detect Time: {(side3 - side2) * 1000}ms")
-                print(f"Get Enemy Time: {(side4 - side3) * 1000}ms")
-                print(f"Calculate Time: {(side5 - side4) * 1000}ms")
  
-        except Exception as e:
-            print(e)
+        except:
+            pass

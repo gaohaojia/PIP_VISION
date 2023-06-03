@@ -1,7 +1,6 @@
 """
 该文件被main.py调用，借助官方sdk初始化摄像头。
 """
-import sys
 import numpy as np
 import cv2
 from cam_conf import mvsdk
@@ -10,7 +9,7 @@ class buffer():
     def __init__(self):
         DevList = mvsdk.CameraEnumerateDevice()
         nDev = len(DevList)
-        assert nDev < 1, "No camera was found!"
+        assert nDev > 0, "No camera was found!"
 
         DevInfo = DevList[0]
 
