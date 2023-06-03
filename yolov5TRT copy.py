@@ -8,6 +8,15 @@ import numpy as np
 import pycuda.driver as cuda
 import pycuda.autoinit # 勿删，该包有调用，灰色是编译器问题。
 import tensorrt as trt
+import torch
+import torchvision
+
+check_fr = 0
+fr = []
+
+# 对目标下一帧X,Y坐标的预测值
+pre_x = 0
+pre_y = 0
 
 def plot_one_box(x, img, color=None, label=None, line_thickness=None):
     """
@@ -200,7 +209,7 @@ class YoLov5TRT(object):
         image = cv2.resize(image, (tw, th))
         # Pad the short side with (128,128,128)
         image = cv2.copyMakeBorder(
-            image, ty1, ty2, tx1, tx2, cv2.BORDER_CONSTANT, None, (128, 128, 128)
+            image, ty1, ty2, tx1, tx2, cv2.BORDER_CONSTANT, (128, 128, 128)
         )
         image = image.astype(np.float32)
         # Normalize to [0,1]
@@ -219,11 +228,11 @@ class YoLov5TRT(object):
         param:
             origin_h:   height of original image
             origin_w:   width of original image
-            x:          A boxes numpy, each row is a box [center_x, center_y, w, h]
+            x:          A boxes tensor, each row is a box [center_x, center_y, w, h]
         return:
-            y:          A boxes numpy, each row is a box [x1, y1, x2, y2]
+            y:          A boxes tensor, each row is a box [x1, y1, x2, y2]
         """
-        y = np.zeros_like(x)
+        y = torch.zeros_like(x) if isinstance(x, torch.Tensor) else np.zeros_like(x)
         r_w = self.input_w / origin_w
         r_h = self.input_h / origin_h
         if r_h > r_w:
@@ -246,22 +255,42 @@ class YoLov5TRT(object):
         """
         description: postprocess the prediction
         param:
-            output:     A numpy likes [num_boxes,cx,cy,w,h,conf,cls_id, cx,cy,w,h,conf,cls_id, ...] 
+            output:     A tensor likes [num_boxes,cx,cy,w,h,conf,cls_id, cx,cy,w,h,conf,cls_id, ...]
             origin_h:   height of original image
             origin_w:   width of original image
         return:
-            result_boxes: finally boxes, a boxes numpy, each row is a box [x1, y1, x2, y2]
-            result_scores: finally scores, a numpy, each element is the score correspoing to box
-            result_classid: finally classid, a numpy, each element is the classid correspoing to box
+            result_boxes: finally boxes, a boxes tensor, each row is a box [x1, y1, x2, y2]
+            result_scores: finally scores, a tensor, each element is the score correspoing to box
+            result_classid: finally classid, a tensor, each element is the classid correspoing to box
         """
         # Get the num of boxes detected
         num = int(output[0])
         # Reshape to a two dimentional ndarray
-        pred = np.reshape(output[1:], (-1, LEN_ONE_RESULT))[:num, :]
-        pred = pred[:, :6]
+        pred = np.reshape(output[1:], (-1, 6))[:num, :]
+
+        # 这里针对比赛和机器人进行了代码添加
+        # 主要功能是锚框 置信度 标号的转换融合操作
+        # to a torch Tensor
+        pred = torch.Tensor(pred).cuda()
+        # Get the boxes
+        boxes = pred[:, :4]
+        # Get the scores
+        scores = pred[:, 4]
+        # Get the classid
+        classid = pred[:, 5]
+        # Choose those boxes that score > CONF_THRESH
+        si = scores > self.conf_thresh
+        boxes = boxes[si, :]
+        scores = scores[si]
+        classid = classid[si]
+        # Trandform bbox from [center_x, center_y, w, h] to [x1, y1, x2, y2]
+        boxes = self.xywh2xyxy(origin_h, origin_w, boxes)
+        # 代码添加到这里结束
+        
+        # TODO:值得注意的是，下面nms算法在cpu中进行，而nms算法是十分耗费资源的，这是优化的切入点之一
         # Do nms
-        boxes = self.non_max_suppression(pred, origin_h, origin_w, conf_thres=CONF_THRESH, nms_thres=IOU_THRESHOLD)
-        result_boxes = boxes[:, :4] if len(boxes) else np.array([])
-        result_scores = boxes[:, 4] if len(boxes) else np.array([])
-        result_classid = boxes[:, 5] if len(boxes) else np.array([])
+        indices = torchvision.ops.nms(boxes, scores, iou_threshold=self.iou_threshold).cpu()
+        result_boxes = boxes[indices, :].cpu()
+        result_scores = scores[indices].cpu()
+        result_classid = classid[indices].cpu()
         return result_boxes, result_scores, result_classid
