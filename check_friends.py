@@ -57,7 +57,7 @@ class check_friends():
         if self.check_fr == 0 and self.friends:
             fr = self.friends
             self.check_fr = 1
-        self.friends_list = fr + ([2, 3, 4, 5, 8, 11, 14, 17, 19, 20] if self.ENGINE_VERSION == 7 else [8, 9, 10, 11])
+        self.friends_list = fr + ([2, 3, 4, 5, 8, 11, 14, 17, 18, 19] if self.ENGINE_VERSION == 7 else [8, 9, 10, 11])
 
     def get_nonfriend_from_all(self, all, friends):
         """

@@ -86,7 +86,7 @@ categories7 = ["armor1red", "armor1blue", "armor1grey",
                "armor4red", "armor4blue", "armor4grey",
                "armor5red", "armor5blue", "armor5grey",
                "armor7red", "armor7blue", "armor7grey",
-               "wait", "nonactivate", "done"]
+               "nonactivate", "done", "wait"]
 
 class boxes():
     """
