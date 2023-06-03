@@ -277,9 +277,6 @@ class get_frame(threading.Thread):
     description:   用于获取图像的线程。
     """
     def __init__(self):
-        """
-        description:   初始化线程与相机。
-        """
         threading.Thread.__init__(self)
 
     def run(self):
@@ -301,23 +298,21 @@ class calculate_and_trans(threading.Thread):
     """
     description:   用于进行计算和传输的线程。
     """
-    def __init__(self, result_boxes, CF_wrapper, ser):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self, result_boxes, CF_wrapper, ser):
         """
-        description:   初始化线程与相机。
+        description:   线程主进程。
         param:
             result_boxes:   boxes类。
             CF_wrapper:     友军保护类（check_friends_wrapper）。
             ser:            串口信息。
         """
-        threading.Thread.__init__(self)
         self.result_boxes = result_boxes
         self.CF_wrapper = CF_wrapper
         self.ser = ser
 
-    def run(self):
-        """
-        description:   线程主进程。
-        """
         global detect_data, detect_frame                                                       # 获取全局变量
         self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
         detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
@@ -327,6 +322,24 @@ class calculate_and_trans(threading.Thread):
                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
                                    self.result_boxes.scores[minBox_idx]), )
             
+class show_result_image(threading.Thread):
+    """
+    description:   用于输出结果图像的线程。
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        """
+        description:   循环输出图像。
+        """
+        while(1):
+            try:
+                cv2.imshow("Result", detect_frame) # 显示图像输出
+                cv2.waitKey(1)
+            except:
+                pass
+
 
 if __name__ == "__main__":
     """
@@ -361,13 +374,15 @@ if __name__ == "__main__":
         get_frame_thread = get_frame()                                                         # 启动获取图像线程
         get_frame_thread.start()
     else:
-        raw_frame = cv2.imread("images/" + opt.image)                                          # 读入欲测试的图片
-        frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
+        frame = cv2.resize(cv2.imread("images/" + opt.image), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)  # 读入欲测试的图片
 
     ''' 待与电控测试
     listening_thread = listening_ser()  # 运行监听线程
     listening_thread.start()
     '''
+
+    show_result_image_thread = show_result_image()
+    show_result_image_thread.start()
 
     detect_data = data() # 初始化数据信息
     # 循环检测目标与发送信息
@@ -380,13 +395,10 @@ if __name__ == "__main__":
             result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
             side2 = time.time()                                                            # 结束计时
 
-            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)     # 启动计算线程
-            CAT_thread.start()
+            CAT_thread = calculate_and_trans()     # 启动计算线程
+            CAT_thread.start(result_boxes, check_friends_wrapper, ser)
 
             detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
-
-            cv2.waitKey(1) 
-            cv2.imshow("Result", detect_frame) # 显示图像输出
             
             if RUN_MODE: 
                 # 输出用时
