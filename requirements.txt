@@ -1,7 +1,5 @@
-numpy==1.13.3
-pycuda==2022.1
-pyserial==3.5
-tensorrt==8.0.1.6
-torch==1.7.0
-torchvision==0.15.2
-utils==1.0.1
+numpy
+pycuda
+pyserial
+utils
+keyboard

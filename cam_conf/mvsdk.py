@@ -1,3 +1,6 @@
+"""
+该文件为海康威视官方sdk文件，被init_camera.py调用，负责获取摄像头图像。
+"""
 #coding=utf-8
 import platform
 from ctypes import *

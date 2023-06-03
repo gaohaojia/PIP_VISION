@@ -1,4 +1,0 @@
-/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/rebuild_cache.dir
-/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/edit_cache.dir
-/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/myplugins.dir
-/home/pip/Desktop/yolov5+tensorrt/yolov5/buildc/CMakeFiles/yolov5.dir

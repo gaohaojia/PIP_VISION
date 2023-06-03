@@ -1,32 +1,145 @@
+"""
+该文件为主运行文件。
+"""
 import ctypes
 import time
 import cv2
-import torch
 import numpy as np
 import argparse
 import serial
 import os
+import threading
 
 from cam_conf import init_camera
-from cam_conf import mvsdk
+from check_friends import check_friends
 import yolov5TRT
 
-pre_time = 0.1 # 每帧所需时间
-run_path = os.path.split(os.path.realpath(__file__))[0] # 运行目录
+CONF_THRESH = 0.5
+"""
+置信度:
+    识别后的置信度大于该值，识别结果保留。
+"""
+IOU_THRESHOLD = 0.5
+"""
+交并比:
+    两个识别结果交并比大于该值，识别结果删除一个。
+"""
+RUN_MODE = 1
+"""
+运行模式:
+    0: release模式，不显示任何调试信息和图像信息，只显示报错信息，节约性能。
+    1: debug模式，显示全部的信息和图像，方便调试。
+"""
+ENGINE_VERSION = 7
+"""
+运行的模型:
+    5: YOLOv5模型。
+    7: YOLOv7模型。
+"""
+FRAME_RAW, FRAME_COL = 1280, 1024
+"""
+相机大小:
+    相机输出的图像大小。
+"""
+INPUT_RAW, INPUT_COL = 640, 480
+"""
+检测大小:
+    模型检测时的输入图像。
+"""
+TOLERANT_VALUE = 30
+"""
+容错值:
+    预测坐标的容错范围（像素）。
+"""
+RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
+"""
+运行目录:
+    自动获取当前代码运行的目录。
+"""
+
+frame = None # 当前图像
+detect_frame = None # 被用于检测的图像
+result_frame = None # 结果图像
+show_frame = None # 用于输出的图像
+detect_data = None # 检测数据
+categories = None # 被使用的标签集
+
+# 一些相机参数常量，用于计算显示距离
+fx = 1056.4967111
+fy = 1056.6221413136
+cx = 657.4915775667
+cy = 508.2778608
+xxx = -0.392652606
+cameraMatrix = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # 相机内参矩阵
+distCoeffs = None
+half_Weight = [229 / 4, 152 / 4]
+half_Height = [126 / 4, 142 / 4]
 
 # 标签列表
-categories = ["armor1red", "armor3red", "armor4red", "armor5red",           
+categories5 = ["armor1red", "armor3red", "armor4red", "armor5red",           
               "armor1blue", "armor3blue", "armor4blue",
               "armor5blue", "armor1grey", "armor3grey", "armor4grey", "armor5grey"]
 
+categories7 = ["armor1red", "armor1blue", "armor1grey",
+               "armor2red", "armor2blue", "armor2grey",
+               "armor3red", "armor3blue", "armor3grey",
+               "armor4red", "armor4blue", "armor4grey",
+               "armor5red", "armor5blue", "armor5grey",
+               "armor7red", "armor7blue", "armor7grey",
+               "wait", "nonactivate", "done"]
+
+class boxes():
+    """
+    description: 用于存储boxes各种信息的类。
+    """
+    def __init__(self, boxes, scores, classid):
+        """
+        param:
+            boxes:   boxes位置信息。
+            scores:  boxes的置信度。
+            classid: boxes的id。
+        """
+        self.boxes = boxes      
+        self.scores = scores    
+        self.classid = classid  
+
+class data():
+    """
+    description: 用于存储被检测目标的各种信息。
+    """
+    def __init__(self, now_x=-1, now_y=-1, last_x=-1, last_y=-1, delta_x = -1, delta_y = -1, distance=-1, pre_time=-1):
+        """
+        param:
+            now_x:     当前帧的x坐标。
+            now_y:     当前帧的y坐标。
+            last_x:    上一帧的x坐标。
+            last_y:    上一帧的y坐标。
+            distance:  距离。
+            pre_time:  每帧所需时间。
+        """
+        self.now_x = now_x
+        self.now_y = now_y
+        self.last_x = last_x
+        self.last_y = last_y
+        self.delta_x = delta_x
+        self.delta_y = delta_y
+        self.distance = distance
+        self.pre_time = pre_time
+
 def get_ser(port, baudrate, timeout):
     """
-    description: Linux系统使用com1口连接串行口，在代码125行左右用于获得串行口传入tensorRT
+    description: Linux系统使用com1口连接串行口。
+    param:
+        baudrate:  端口。
+        timeout:   超时时间。
+    return:
+        串口信息。
     """
-    ser = serial.Serial(port, baudrate, timeout)
-    print(f"Serial Bytesize: {ser.bytesize}")
-    print(f"Serial Parity:   {ser.parity}")
-    print(f"Serial Stopbits: {ser.stopbits}")
+    ser = serial.Serial(port, baudrate, timeout=timeout)
+    if RUN_MODE:
+        print(f"Serial Bytesize: {ser.bytesize}")
+        print(f"Serial Parity:   {ser.parity}")
+        print(f"Serial Stopbits: {ser.stopbits}")
     return ser
 
 def get_transdata_from_10b(transdata):
@@ -40,107 +153,95 @@ def get_transdata_from_10b(transdata):
     b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
     return [b16s[:2], b16s[2:]]
 
-def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_raw):
+def calculate_data(result_boxes, detect_data):
     """
-    description: 将detect的信息与电控通讯。
+    description: 计算测量结果。
     param:
-        ser:             串口信息。
-        result_boxes:    识别的boxes。
-        result_scores:   boxes的置信度。
-        result_classid:  boxes的id。
+        result_boxes:   boxes类。
+        detect_data:    识别的目标信息，data类。
+    result:
+        输出计算后的detect_data和距离中心最近的box的索引。
     """
-    # 计算处理时间
-    side2 = time.time()
-    boxes = np.array(result_boxes)
-    inde = boxes.shape[0]
-    numlist = []
+    dis_list = [] # 用于保存每一个boxes距离中心的距离
 
-    # readata=ser.read
-    # 计算谁离中心近
-    for isb in range(inde):
-        numlist.append(
-            float(((boxes[isb][0] + boxes[isb][2]) / 2 - 320) ** 2 + ((boxes[isb][1] + boxes[isb][3]) - 240) ** 2))
-    mindex = -1
-    if len(numlist) == 0:
-        mindex = -1
-    else:
-        mindex = np.argmin(numlist)
+    if result_boxes.boxes:
 
-    try:
-        global pre_x, pre_y
-        x_now = int((boxes[mindex][0] + boxes[mindex][2]) / 2)
-        y_now = int((boxes[mindex][1] + boxes[mindex][3]) / 2)
-        x_1, x_2 = get_transdata_from_10b((x_now))
-        y_1, y_2 = get_transdata_from_10b((y_now))
-        detax = x_now - pre_x
-        detay = y_now - pre_y
-        xx_1, xx_2 = get_transdata_from_10b((int(pre_x + detax / 2)))
-        yy_1, yy_2 = get_transdata_from_10b((int(pre_y + detay / 2)))
-        print(x_1, x_2, xx_1, xx_2)
-        deta_dis = np.sqrt((detay ** 2 + detax ** 2))
-        speed_1, speed_2 = get_transdata_from_10b(int(500 * pre_time))
-        pre_x = x_now
-        pre_y = y_now
-    except:
-        print("Wrong Trans!")
+        # 计算与前一帧的偏移
+        if detect_data.last_x != -1 and detect_data.now_x != -1:
+            detect_data.delta_x = detect_data.now_x - detect_data.last_x
+            detect_data.delta_y = detect_data.now_y - detect_data.last_y
 
-    side3 = time.time()
-    print(f"Side3 Time: \t{(side3 - side2) * 1000:.3f}")
-    tag_size = 0.05
-    tag_size_half = 0.02
-    half_Weight = [229 / 4, 152 / 4]
-    half_Height = [126 / 4, 142 / 4]
+        # 判断偏移量是否在容忍范围内
+        if detect_data.delta_x ** 2 + detect_data.delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.delta_x != -1:
 
-    fx = 1056.4967111
-    fy = 1056.6221413136
-    cx = 657.4915775667
-    cy = 508.2778608
-    xxx = -0.392652606
-    K = np.array([[fx, xxx, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)  # neican
+            # 计算与预测值之间的标准差
+            pre_x = detect_data.now_x + detect_data.delta_x
+            pre_y = detect_data.now_y + detect_data.delta_y
+            dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - pre_x) ** 2 + 
+                              ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - pre_y) ** 2) 
+                              for i in range(len(result_boxes.boxes))]
+        else:
 
-    cameraMatrix = K
-    distCoeffs = None
-    side4 = time.time()
-    print(f"Side4 Time: \t{(side4 - side3) * 1000:.3f}")
-    if mindex != -1:
-        box = result_boxes[mindex]
+            # 计算与图像中心之间的标准差
+            dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - (INPUT_RAW / 2)) ** 2 + 
+                              ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - (INPUT_COL / 2)) ** 2) 
+                              for i in range(len(result_boxes.boxes))]
+    
+    minBox_idx = dis_list.index(min(dis_list)) if dis_list else -1 # 获取标准差最小boxes的索引
+
+    detect_data.last_x = detect_data.now_x     # 刷新数据
+    detect_data.last_y = detect_data.now_y
+
+    if minBox_idx != -1:
+        box = result_boxes.boxes[minBox_idx]                # 获取box
+
+        detect_data.now_x = int((box[0] + box[2]) / 2)      # 计算当前帧x
+        detect_data.now_y = int((box[1] + box[3]) / 2)      # 计算当前帧y
+
+        """
+        下面进行的操作就是把现实世界3D坐标系的点位，通过相机内参得到2D平面上的点位
+        可以看看这篇文章，写的还不错https://www.jianshu.com/p/1bf329da535b
+        归根结底还是距离和速度的预测推算
+        """
 
         imgPoints = np.array([[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]],
-                             dtype=np.float64)
-        # label = "{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex])
-        if mindex % 4 == 0:
-            idn = 0
-        else:
-            idn = 1
+                            dtype=np.float64)
+        idn = 0 if minBox_idx % 4 == 0 else 1
         objPoints = np.array([[-half_Weight[idn], -half_Height[idn], 0],
-                              [half_Weight[idn], -half_Height[idn], 0],
-                              [half_Weight[idn], half_Height[idn], 0],
-                              [-half_Weight[idn], half_Height[idn], 0]], dtype=np.float64)
+                              [ half_Weight[idn], -half_Height[idn], 0],
+                              [ half_Weight[idn],  half_Height[idn], 0],
+                              [-half_Weight[idn],  half_Height[idn], 0]], dtype=np.float64)
         retval, rvec, tvec = cv2.solvePnP(objPoints, imgPoints, cameraMatrix, distCoeffs)
 
-        distance = np.linalg.norm(tvec)
-
-        try:
-            yolov5TRT.plot_one_box(box, image_raw,
-                         label="{}:{:.2f}".format(categories[int(result_classid[mindex])], result_scores[mindex]), )
-        except:
-            '''g'''
-
+        '''
         rvec_matrix = cv2.Rodrigues(rvec)[0]
         proj_matrix = np.hstack((rvec_matrix, rvec))
         eulerAngles = -cv2.decomposeProjectionMatrix(proj_matrix)[6]  # 欧拉角
         pitch, yaw, roll = str(int(eulerAngles[0])), str(int(eulerAngles[1])), str(int(eulerAngles[2]))
-        distance = str(int(distance / 10))
-        # label=str(label)
-        print(f'pryd{pitch},{yaw},{roll},{distance}')
+        '''
+        detect_data.distance = str(int(np.linalg.norm(tvec) / 10))
+    else:
+        detect_data.now_x = -1     # 未识别出box，则初始化当前帧x，y
+        detect_data.now_y = -1
 
-        dis_1, dis_2 = get_transdata_from_10b((int(distance)))
-    zero11, zero2 = get_transdata_from_10b(0)
-    # e = bin(int(240-boxes[mindex][1]) )
+    return detect_data, minBox_idx
 
+def trans_detect_data(ser, detect_data):
+    """
+    description: 将detect_data的信息与电控通讯。
+    param:
+        ser:             串口信息。
+        detect_data:     计算后的数据，data类。
+    """
+    x_1, x_2 = get_transdata_from_10b((detect_data.now_x))
+    y_1, y_2 = get_transdata_from_10b((detect_data.now_y))
+    speed_1, speed_2 = get_transdata_from_10b(int(0.5 * detect_data.pre_time))
+    dis_1, dis_2 = get_transdata_from_10b((int(detect_data.distance)))
+    ZERO1, _ = get_transdata_from_10b(0)
+
+    # 串口进行数据传输，传输距离，坐标，预测速度
     ser.write(b'\x45')
     try:
-        # ser.write(b'\x45')
         ser.write(bytes.fromhex(dis_1))  # x-mid
         ser.write(bytes.fromhex(dis_2))
         ser.write(bytes.fromhex(x_1))  # x-mid
@@ -150,187 +251,175 @@ def trans_detect_data(ser, result_boxes, result_scores, result_classid, image_ra
         ser.write(bytes.fromhex(speed_1))  # x-mid
         ser.write(bytes.fromhex(speed_2))
     except:
-        # ser.write(b'\x45')
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-        ser.write(bytes.fromhex(zero11))  # x-mid
-        ser.write(bytes.fromhex(zero11))
-    side5 = time.time()
-    print(f"Side5 Time: \t{(side5 - side4) * 1000:.3f}")
-    end = time.time()
-
-class check_friends():
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
+        ser.write(bytes.fromhex(ZERO1))  # x-mid
+        ser.write(bytes.fromhex(ZERO1))
+    
+class listening_ser(threading.Thread):
     """
-    description: 检测友军
+    description:  监听线程，用于监听电控信号。
     """
-    def __init__(self, ser):
-        """
-        description: 初始化变量以及尝试获取友军信息。
-        param:
-            ser:    串口信息。
-        """
-        self.color = 0
-        self.friends = []
-        self.check_fr = 0
+    def __init__(self):
+        threading.Thread.__init__(self)
 
-        # 尝试10次通讯获取，防止1次获取失败。
-        for i in range(10):
-            if (self.check_fr):
-                break
-            self.get_color_and_friends(ser)
+    def run(self):
+        while (1):
+            get_ser = None
+            try:
+                get_ser = ser.read()
+                if get_ser != None:
+                    print(ser.read())
+            except:
+                pass
 
-    def get_color_and_friends(self, ser):
+class get_frame(threading.Thread):
+    """
+    description:   用于获取图像的线程。
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
         """
-        description: 与电控通讯，获取友军颜色与友军id。
-        param:
-            ser:    串口信息。
+        description:   循环获取图像。
         """
+        global frame
         try:
-            ser.write(b'\x45')
+            self.buffer = init_camera.buffer()
         except:
-            print("Wrong Open Serial!")
-        
-        # TODO:还需要添加风车的编号，已经打过的风车和灰色风车都标记为友军
-        # TODO:目前的想法：1.红蓝色已击打看作一个标签进行训练识别   2.红蓝色已击打分为两类训练识别
+            frame = cv2.resize(cv2.imread("images/000001.jpeg"), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
+            return
+        while(1):
+            raw_frame = self.buffer.get_frame()                                                                # 获取相机图像
+            frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+            time.sleep(0.003)
 
-        print(f'Recieve: {ser.read()}')
-        # 根据我方式红蓝方的设定，进行友军识别
-        if ser.read() == b'\xff':
-            self.color = 1  # blue
-            self.friends = [0, 1, 2, 3]
-        elif ser.read() == b'\xaa':
-            self.color = 2  # red
-            self.friends = [4, 5, 6, 7]
-        if self.friends:
-            print(f"Friend id: {self.friends}")
-
-        # 如果是友军而且友军列表成功添加，那么友军标记边变1，并且友军列表添加死亡的敌人
-        fr = []
-        if self.check_fr == 0 and len(self.friends) != 0:
-            fr = self.friends
-            self.check_fr = 1
-        self.friends_list = fr + [8, 9, 10, 11]
-
-    def get_nonfriend_from_all(self, all, friends):
+class calculate_and_trans(threading.Thread):
+    """
+    description:   用于进行计算和传输的线程。
+    """
+    def __init__(self, result_boxes, CF_wrapper, ser):
         """
-        description: 获取非友军相关参数。
+        description:   初始化线程和参数。
         param:
-            all:    全部参数。
-            friend: 友军参数。
-        return:
-            非友军参数。
+            result_boxes:   boxes类。
+            CF_wrapper:     友军保护类（check_friends_wrapper）。
+            ser:            串口信息。
         """
-        new = []
-        for i in all.numpy().tolist():
-            if i not in (friends):
-                new.append(i)
-        return torch.tensor(new)
+        threading.Thread.__init__(self)
+        self.result_boxes = result_boxes
+        self.CF_wrapper = CF_wrapper
+        self.ser = ser
 
-    def get_enemy_info(self, result_boxes, result_scores, result_classid):
+    def run(self):
         """
-        description: 处理识别的box，输出敌军的box信息。
-        param:
-            result_boxes:    boxes。
-            result_scores:   所有boxes的置信度。
-            result_classid:  所有boxes的id信息。
-        return:
-            敌军的boxes、置信度、id信息。
+        description:   线程主进程。
         """
-        # 分别代表友军的box、box置信度、box的id
-        exit_friends_boxes = []
-        exit_friends_scores = []
-        exit_friends_id = []
-        friends_id = []
-        for ii in range(len(result_classid)):
-            if int(result_classid.numpy()[ii]) in self.friends_list:
-                friends_id.append(int(result_classid.numpy()[ii]))
-                exit_friends_boxes.append(result_boxes[ii])
-                exit_friends_scores.append(result_scores[ii])
-                exit_friends_id.append(result_classid[ii])
-        if friends_id:
-            print(f"Friend Id: {friends_id}")
-        enemy_list_index = []
+        global detect_data, result_frame, show_frame                                           # 获取全局变量
+        result_frame = detect_frame
+        if RUN_MODE:
+            for i in range(len(self.result_boxes.boxes)):                                      # 在图像上绘制所有检测框
+                yolov5TRT.plot_one_box(self.result_boxes.boxes[i], result_frame, [192,192,192],
+                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[i])], 
+                                    self.result_boxes.scores[i]), )
+            
+        self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
+        detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
+        trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
 
-        # 获取敌军的列表以及id
-        try:
-            for i in result_classid.numpy():
-                if int(i) not in friends_id:
-                    dex_tem = ((np.where(result_classid.numpy() == i))[0][0])
-                    enemy_list_index.append(dex_tem)
-        except:
-            "g"
-        ourbox = []
-        if enemy_list_index:
-            print(f"Enemy Id: {enemy_list_index}")
-        for dex in enemy_list_index:
-            ourbox.append(result_boxes[dex].numpy())
+        if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
+            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame, [0, 0, 255],
+                                   label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
+                                   self.result_boxes.scores[minBox_idx]), )
+        show_frame = result_frame
+            
+class show_result_image(threading.Thread):
+    """
+    description:   用于输出结果图像的线程。
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
 
-        result_boxes = ourbox
+    def run(self):
+        """
+        description:   循环输出图像。
+        """
+        while(1):
+            try:
+                cv2.imshow("Result", show_frame) # 显示图像输出
+                cv2.waitKey(1)
+            except:
+                pass
 
-        # 置信度处理
-        result_scores = self.get_nonfriend_from_all(result_scores, exit_friends_scores)
-        # id处理
-        result_classid = self.get_nonfriend_from_all(result_classid, exit_friends_id)
-        # 从而获取到处理完毕的友方敌方box
-        print(f"Nowboxes: {result_boxes}")
-        print(f"Nowscore: {result_scores}")
-        print(f"Nowid: {result_classid}")
-        return result_boxes, result_scores, result_classid
 
 if __name__ == "__main__":
-
+    """
+    description:   运行主函数。
+    """
+    # 获取调试参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--engine', nargs='+', type=str, default=run_path+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s)')
-    parser.add_argument('--library', nargs='+', type=str, default=run_path+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s)')
-    parser.add_argument('--save', type=int, default=0, help='save?')
+    parser.add_argument('--version', nargs='?', type=int, default=7, help='The engine version that will be used. Default 5.')
+    parser.add_argument('--engine', nargs='?', type=str, 
+                        default=RUN_PATH+"/YOLOv5withTensorRT/build/best.engine", help='.engine path(s).')
+    parser.add_argument('--library', nargs='?', type=str, 
+                        default=RUN_PATH+"/YOLOv5withTensorRT/build/libmyplugins.so", help='libmyplugins.so path(s).')
+    parser.add_argument('--color', nargs='?', type=int, default=1, help='Friend\'s color, 1 is red (default), 2 is blue.')
+    parser.add_argument('--mode', nargs='?', type=str, default="debug", help='Running mode. debug (default) or release.')
+    parser.add_argument('--image', nargs='?', type=str, default=None, help='Test image path. Default no test image.')
     opt = parser.parse_args()
-    PLUGIN_LIBRARY = opt.library
-    engine_file_path = opt.engine
-    print(f'Enginepath: {engine_file_path}')
-    ctypes.CDLL(PLUGIN_LIBRARY)
 
-    hCamera, pFrameBuffer = init_camera.get_buffer()
-    ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)
-    yolov5_wrapper = yolov5TRT.YoLov5TRT(engine_file_path)
-    check_friend_wrapper = check_friends(ser)
-    
-    try:
-        while 1:
-            begin = time.time()
-            pRawData, FrameHead = mvsdk.CameraGetImageBuffer(hCamera, 200)
-            mvsdk.CameraImageProcess(hCamera, pRawData, pFrameBuffer, FrameHead)
-            mvsdk.CameraReleaseImageBuffer(hCamera, pRawData)
+    RUN_MODE = 1 if opt.mode == "debug" else 0                                  # 保存运行模式
+    ctypes.CDLL(opt.library)                                                    # 调用TensorRT所需的library库
+    ENGINE_FILE_PATH = opt.engine                                               # 保存模型文件目录
+    ENGINE_VERSION = opt.version                                                # 保存模型版本
+    categories = categories7 if ENGINE_VERSION == 7 else categories5            # 保存类别版本
 
-            # windows下取到的图像数据是上下颠倒的，以BMP格式存放。转换成opencv则需要上下翻转成正的
-            # linux下直接输出正的，不需要上下翻转
+    ser = get_ser("/dev/ttyTHS0", 115200, 0.0001)                                             # 获取串口
+    yolov5_wrapper = yolov5TRT.YoLov5TRT(ENGINE_FILE_PATH, CONF_THRESH, IOU_THRESHOLD)        # 初始化YOLOv5运行API
+    if RUN_MODE:
+        print("\nDebug Mode.")
+        print(f"Enginepath: {ENGINE_FILE_PATH}")
+    check_friends_wrapper = check_friends(ser, opt.color, RUN_MODE, ENGINE_VERSION)            # 初始化友军检测类
 
-            # 此时图片已经存储在pFrameBuffer中，对于彩色相机pFrameBuffer=RGB数据，黑白相机pFrameBuffer=8位灰度数据
-            # 把pFrameBuffer转换成opencv的图像格式以进行后续算法处理
-            frame_data = (mvsdk.c_ubyte * FrameHead.uBytes).from_address(pFrameBuffer)
-            frame = np.frombuffer(frame_data, dtype=np.uint8)
-            frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
-                                   1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
+    if opt.image is None:                                                                      # 判断是否为图像测试模式
+        get_frame_thread = get_frame()                                                         # 启动获取图像线程
+        get_frame_thread.start()
+    else:
+        frame = cv2.resize(cv2.imread("images/" + opt.image), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)  # 读入欲测试的图片
 
-            # cv2.Rodrigues()
+    ''' 待与电控测试
+    listening_thread = listening_ser()  # 运行监听线程
+    listening_thread.start()
+    '''
 
-            frame = cv2.resize(frame, (640,480), interpolation=cv2.INTER_LINEAR)
-            #_, frame = frame.read()
-            begin2 = time.time()
+    show_result_image_thread = show_result_image()
+    show_result_image_thread.start()
 
-            result_boxes, result_scores, result_classid, image_raw = yolov5_wrapper.infer(frame)
-            result_boxes, result_scores, result_classid = check_friend_wrapper.get_enemy_info(result_boxes, result_scores, result_classid)
-            trans_detect_data(ser, result_boxes, result_scores, result_classid, image_raw)
+    detect_data = data() # 初始化数据信息
+    # 循环检测目标与发送信息
+    while 1:
+        try:
+            assert not frame is None, "Waiting Camera."
+            side1 = time.time() # 计时开始
+            
+            detect_frame = frame
+            result = yolov5_wrapper.infer(detect_frame)                                    # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
+            side2 = time.time()                                                            # 结束计时
 
-            end2 = time.time()
-            end = time.time()
-            pre_time = (end - begin)
+            CAT_thread = calculate_and_trans(result_boxes, check_friends_wrapper, ser)     # 启动计算线程
+            CAT_thread.start()
 
-            cv2.waitKey(1)
-            cv2.imshow("result", image_raw)
-            print(f"Frame Time: {(end - begin) * 1000}ms\t\tYOLO Time: {(end2 - begin2) * 1000}ms")
-    except Exception as e:
-        print("ERROR! Run while ERROR!\n" + e)
+            detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
+            
+            if RUN_MODE: 
+                # 输出用时
+                print(f"Total Time: {detect_data.pre_time}ms")
+ 
+        except:
+            pass
