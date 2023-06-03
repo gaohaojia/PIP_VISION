@@ -107,7 +107,7 @@ class data():
     """
     description: 用于存储被检测目标的各种信息。
     """
-    def __init__(self, now_x=-1, now_y=-1, last_x=-1, last_y=-1, distance=-1, pre_time=-1):
+    def __init__(self, now_x=-1, now_y=-1, last_x=-1, last_y=-1, delta_x = -1, delta_y = -1, distance=-1, pre_time=-1):
         """
         param:
             now_x:     当前帧的x坐标。
@@ -121,6 +121,8 @@ class data():
         self.now_y = now_y
         self.last_x = last_x
         self.last_y = last_y
+        self.delta_x = delta_x
+        self.delta_y = delta_y
         self.distance = distance
         self.pre_time = pre_time
 
@@ -165,15 +167,16 @@ def calculate_data(result_boxes, detect_data):
     if result_boxes.boxes:
 
         # 计算与前一帧的偏移
-        delta_x = detect_data.now_x - detect_data.last_x
-        delta_y = detect_data.now_y - detect_data.last_y
+        if detect_data.last_x != -1 and detect_data.now_x != -1:
+            detect_data.delta_x = detect_data.now_x - detect_data.last_x
+            detect_data.delta_y = detect_data.now_y - detect_data.last_y
 
         # 判断偏移量是否在容忍范围内
-        if delta_x ** 2 + delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.last_x != -1 and detect_data.now_x != -1:
+        if detect_data.delta_x ** 2 + detect_data.delta_y ** 2 <= TOLERANT_VALUE ** 2 and detect_data.delta_x != -1:
 
             # 计算与预测值之间的标准差
-            pre_x = detect_data.now_x + delta_x
-            pre_y = detect_data.now_y + delta_y
+            pre_x = detect_data.now_x + detect_data.delta_x
+            pre_y = detect_data.now_y + detect_data.delta_y
             dis_list = [float(((result_boxes.boxes[i][0] + result_boxes.boxes[i][2]) / 2 - pre_x) ** 2 + 
                               ((result_boxes.boxes[i][1] + result_boxes.boxes[i][3]) / 2 - pre_y) ** 2) 
                               for i in range(len(result_boxes.boxes))]
