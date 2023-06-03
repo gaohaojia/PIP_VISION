@@ -59,6 +59,7 @@ RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
 
 frame = None # 当前图像
 detect_frame = None # 被用于检测的图像
+result_frame = None # 结果图像
 detect_data = None # 检测数据
 categories = None # 被使用的标签集
 
@@ -313,12 +314,13 @@ class calculate_and_trans(threading.Thread):
         self.CF_wrapper = CF_wrapper
         self.ser = ser
 
-        global detect_data, detect_frame                                                       # 获取全局变量
+        global detect_data, result_frame                                                       # 获取全局变量
         self.result_boxes = self.CF_wrapper.get_enemy_info(self.result_boxes)                  # 获取敌方目标
         detect_data, minBox_idx = calculate_data(self.result_boxes, detect_data)               # 计算测量结果
         trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
+        result_frame = detect_frame
         if minBox_idx != -1:                                                                   # 在图片上绘制检测框
-            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], detect_frame,
+            yolov5TRT.plot_one_box(self.result_boxes.boxes[minBox_idx], result_frame,
                                    label="{}:{:.2f}".format(categories[int(self.result_boxes.classid[minBox_idx])], 
                                    self.result_boxes.scores[minBox_idx]), )
             
@@ -335,7 +337,7 @@ class show_result_image(threading.Thread):
         """
         while(1):
             try:
-                cv2.imshow("Result", detect_frame) # 显示图像输出
+                cv2.imshow("Result", result_frame) # 显示图像输出
                 cv2.waitKey(1)
             except:
                 pass
