@@ -257,7 +257,8 @@ class YoLov5TRT(object):
         # Get the num of boxes detected
         num = int(output[0])
         # Reshape to a two dimentional ndarray
-        pred = np.reshape(output[1:], (-1, 6))[:num, :]
+        pred = np.reshape(output[1:], (-1, 38))[:num, :]
+        pred = pred[:, :6]
         # Do nms
         boxes = self.non_max_suppression(pred, origin_h, origin_w, conf_thres=self.conf_thresh, nms_thres=self.iou_threshold)
         result_boxes = boxes[:, :4] if len(boxes) else np.array([])
