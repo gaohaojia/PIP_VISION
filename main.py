@@ -1,6 +1,7 @@
 """
 该文件为主运行文件。
 """
+import sys
 import ctypes
 import time
 import cv2
@@ -389,7 +390,7 @@ if __name__ == "__main__":
         try:
             buffer = init_camera.buffer()                                                      # 获取摄像头
         except:
-            os.exit()
+            sys.exit()
         get_frame_thread = get_frame()                                                         # 启动获取图像线程
         get_frame_thread.start()
     else:
