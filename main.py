@@ -296,47 +296,7 @@ class get_frame(threading.Thread):
         while(1):
             raw_frame = buffer.get_frame()                                                                     # 获取相机图像
             frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
-            time.sleep(0.003)
-
-class calculate_and_trans(threading.Thread):
-    """
-    description:   用于进行计算和传输的线程。
-    """
-    def __init__(self, CF_wrapper, ser):
-        """
-        description:   初始化线程和参数。
-        param:
-            CF_wrapper:     友军保护类（check_friends_wrapper）。
-            ser:            串口信息。
-        """
-        threading.Thread.__init__(self)
-        self.CF_wrapper = CF_wrapper
-        self.ser = ser
-
-    def run(self):
-        """
-        description:   线程主进程。
-        """
-        global detect_data, result_frame, show_frame, result_boxes                                 # 获取全局变量
-        while (1):
-            if not is_need_calculate:
-                continue
-            result_frame = detect_frame
-            if RUN_MODE:
-                for i in range(len(result_boxes.boxes)):                                           # 在图像上绘制所有检测框
-                    yolov5TRT.plot_one_box(result_boxes.boxes[i], result_frame, [192,192,192],
-                                        label="{}:{:.2f}".format(categories[int(result_boxes.classid[i])], 
-                                        result_boxes.scores[i]), )
-                
-            result_boxes = self.CF_wrapper.get_enemy_info(result_boxes)                            # 获取敌方目标
-            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                    # 计算测量结果
-            trans_detect_data(self.ser, detect_data)                                               # 发送测量信息
-
-            if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
-                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], result_frame, [0, 0, 255],
-                                    label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
-                                    result_boxes.scores[minBox_idx]), )
-            show_frame = result_frame
+            time.sleep(0.003)          
             
 class show_result_image(threading.Thread):
     """
@@ -401,9 +361,6 @@ if __name__ == "__main__":
     listening_thread.start()
     '''
 
-    CAT_thread = calculate_and_trans(check_friends_wrapper, ser)     # 启动计算线程
-    CAT_thread.start()
-
     show_result_image_thread = show_result_image()
     show_result_image_thread.start()
 
@@ -415,17 +372,32 @@ if __name__ == "__main__":
             side1 = time.time() # 计时开始
             
             detect_frame = frame
-            result = yolov5_wrapper.infer(detect_frame)                                    # 用YOLOv5检测目标
-            result_boxes = boxes(*result)                                                  # 将结果转化为boxes类
-            side2 = time.time()                                                            # 结束计时
+            result = yolov5_wrapper.infer(detect_frame)                                            # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                                          # 将结果转化为boxes类
+            side2 = time.time()                                                                    # 结束计时
 
-            is_need_calculate = True
+            result_frame = detect_frame
+            if RUN_MODE:
+                for i in range(len(result_boxes.boxes)):                                           # 在图像上绘制所有检测框
+                    yolov5TRT.plot_one_box(result_boxes.boxes[i], result_frame, [192,192,192],
+                                        label="{}:{:.2f}".format(categories[int(result_boxes.classid[i])], 
+                                        result_boxes.scores[i]), )
+                
+            result_boxes = check_friends_wrapper.get_enemy_info(result_boxes)                      # 获取敌方目标
+            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                    # 计算测量结果
+            trans_detect_data(ser, detect_data)                                                    # 发送测量信息
 
-            detect_data.pre_time = (side2 - side1) * 1000                                  # 统计用时
+            if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
+                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], result_frame, [0, 0, 255],
+                                    label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
+                                    result_boxes.scores[minBox_idx]), )
+            show_frame = result_frame
+            is_need_calculate = False
+
+            detect_data.pre_time = (side2 - side1) * 1000                                          # 统计用时
             
             if RUN_MODE: 
-                # 输出用时
-                print(f"Total Time: {detect_data.pre_time}ms")
+                print(f"Total Time: {detect_data.pre_time}ms")                                     # 输出用时
  
         except:
             pass
