@@ -293,8 +293,7 @@ class get_frame(threading.Thread):
         global frame
         while(1):
             try:
-                raw_frame = buffer.get_frame()                                                                     # 获取相机图像
-                frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+                frame = buffer.get_frame()                                                                     # 获取相机图像
             except:
                 pass
             time.sleep(0.003)          
@@ -372,31 +371,31 @@ if __name__ == "__main__":
         try:
             side1 = time.time() # 计时开始
             
-            detect_frame = frame
-            result = yolov5_wrapper.infer(detect_frame)                                            # 用YOLOv5检测目标
-            result_boxes = boxes(*result)                                                          # 将结果转化为boxes类
-            side2 = time.time()                                                                    # 结束计时
+            detect_frame = cv2.resize(frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)   # 裁切图像
+            result = yolov5_wrapper.infer(detect_frame)                                                # 用YOLOv5检测目标
+            result_boxes = boxes(*result)                                                              # 将结果转化为boxes类
+            side2 = time.time()                                                                        # 结束计时
 
             if RUN_MODE:
-                for i in range(len(result_boxes.boxes)):                                           # 在图像上绘制所有检测框
+                for i in range(len(result_boxes.boxes)):                                               # 在图像上绘制所有检测框
                     yolov5TRT.plot_one_box(result_boxes.boxes[i], detect_frame, [192,192,192],
-                                        label="{}:{:.2f}".format(categories[int(result_boxes.classid[i])], 
-                                        result_boxes.scores[i]), )
+                                           label="{}:{:.2f}".format(categories[int(result_boxes.classid[i])], 
+                                           result_boxes.scores[i]), )
                 
-            result_boxes = check_friends_wrapper.get_enemy_info(result_boxes)                      # 获取敌方目标
-            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                    # 计算测量结果
-            trans_detect_data(ser, detect_data)                                                    # 发送测量信息
+            result_boxes = check_friends_wrapper.get_enemy_info(result_boxes)                          # 获取敌方目标
+            detect_data, minBox_idx = calculate_data(result_boxes, detect_data)                        # 计算测量结果
+            trans_detect_data(ser, detect_data)                                                        # 发送测量信息
 
-            if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
+            if minBox_idx != -1:                                                                       # 在图片上绘制目标检测框
                 yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], detect_frame, [0, 0, 255],
-                                    label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
-                                    result_boxes.scores[minBox_idx]), )
+                                       label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
+                                       result_boxes.scores[minBox_idx]), )
             show_frame = detect_frame
 
-            detect_data.pre_time = (side2 - side1) * 1000                                          # 统计用时
+            detect_data.pre_time = (side2 - side1) * 1000                                              # 统计用时
             
             if RUN_MODE: 
-                print(f"Total Time: {detect_data.pre_time}ms")                                     # 输出用时
+                print(f"Total Time: {detect_data.pre_time}ms")                                         # 输出用时
  
         except:
             pass
