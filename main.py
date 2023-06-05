@@ -63,10 +63,8 @@ detect_frame = None # 被用于检测的图像
 result_frame = None # 结果图像
 show_frame = None # 用于输出的图像
 detect_data = None # 检测数据
-result_boxes = None # 检测的结果
 categories = None # 被使用的标签集
 buffer = None # 摄像头
-is_need_calculate = False # 是否需要进行计算
 
 # 一些相机参数常量，用于计算显示距离
 fx = 1056.4967111
@@ -294,8 +292,11 @@ class get_frame(threading.Thread):
         """
         global frame
         while(1):
-            raw_frame = buffer.get_frame()                                                                     # 获取相机图像
-            frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+            try:
+                raw_frame = buffer.get_frame()                                                                     # 获取相机图像
+                frame = cv2.resize(raw_frame, (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)              # 裁切图像
+            except:
+                pass
             time.sleep(0.003)          
             
 class show_result_image(threading.Thread):
@@ -376,10 +377,9 @@ if __name__ == "__main__":
             result_boxes = boxes(*result)                                                          # 将结果转化为boxes类
             side2 = time.time()                                                                    # 结束计时
 
-            result_frame = detect_frame
             if RUN_MODE:
                 for i in range(len(result_boxes.boxes)):                                           # 在图像上绘制所有检测框
-                    yolov5TRT.plot_one_box(result_boxes.boxes[i], result_frame, [192,192,192],
+                    yolov5TRT.plot_one_box(result_boxes.boxes[i], detect_frame, [192,192,192],
                                         label="{}:{:.2f}".format(categories[int(result_boxes.classid[i])], 
                                         result_boxes.scores[i]), )
                 
@@ -388,11 +388,10 @@ if __name__ == "__main__":
             trans_detect_data(ser, detect_data)                                                    # 发送测量信息
 
             if minBox_idx != -1:                                                                   # 在图片上绘制目标检测框
-                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], result_frame, [0, 0, 255],
+                yolov5TRT.plot_one_box(result_boxes.boxes[minBox_idx], detect_frame, [0, 0, 255],
                                     label="{}:{:.2f}".format(categories[int(result_boxes.classid[minBox_idx])], 
                                     result_boxes.scores[minBox_idx]), )
-            show_frame = result_frame
-            is_need_calculate = False
+            show_frame = detect_frame
 
             detect_data.pre_time = (side2 - side1) * 1000                                          # 统计用时
             
