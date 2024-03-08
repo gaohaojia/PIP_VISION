@@ -10,7 +10,7 @@ import serial
 import os
 import threading
 
-from cam_conf import init_camera
+from cam_conf import camera
 from check_friends import check_friends
 import yolov5TRT
 
@@ -290,7 +290,7 @@ class get_frame(threading.Thread):
         """
         global frame
         try:
-            self.buffer = init_camera.buffer()
+            self.buffer = camera.buffer()
         except:
             frame = cv2.resize(cv2.imread("images/000001.jpeg"), (INPUT_RAW, INPUT_COL), interpolation=cv2.INTER_LINEAR)
             return

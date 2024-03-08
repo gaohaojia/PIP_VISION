@@ -1,0 +1,22 @@
+# 是否使用多进程加速
+multiprocessing: True
+
+# 是否使用TensorRT加速
+tensorrt: False
+
+# 图像处理前大小
+frame_w: 640
+frame_h: 480
+
+# 相机类型（mv：迈德）
+camera: 0
+
+# 测试图片路径（None为不进行测试）
+image: None
+
+# 模型文件路径
+engine: /YOLOv5withTensorRT/build/best.engine
+
+# libmyplugins.so 文件路径
+library: /YOLOv5withTensorRT/build/libmyplugins.so
+
