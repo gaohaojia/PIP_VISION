@@ -18,7 +18,7 @@ class _MVBuffer():
     
     def __init__(self):
 
-        from cam_conf import mvsdk
+        from camera import mvsdk
 
         self.mvsdk = mvsdk
 

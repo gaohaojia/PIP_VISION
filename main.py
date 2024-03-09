@@ -7,7 +7,7 @@ import os
 
 from multiprocessing import Queue, Process
 
-from cam_conf import camera
+from camera import controller
 import yolov5TRT
 
 # 用于存储boxes各种信息的类。
@@ -96,7 +96,7 @@ def get_frame_process(frame_queue: Queue):
         print("[INFO]开启迈德相机模式。")
 
         try:
-            buffer = camera.buffer()
+            buffer = controller.buffer()
             buffer.mvsdk_init()
         except:
             print("[ERROR]未找到迈德相机！")
