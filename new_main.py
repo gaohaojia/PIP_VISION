@@ -5,7 +5,7 @@ import numpy as np
 import argparse
 import os
 
-import multiprocessing
+from multiprocessing import Queue, Process
 
 from cam_conf import camera
 import yolov5TRT
@@ -32,8 +32,12 @@ def load_config():
 
     RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
 
-    with open("config.yml") as f:
-        yml = yaml.full_load(f)
+    try:
+        with open("config.yml") as f:
+            yml = yaml.full_load(f)
+    except:
+        print("[ERROR]配置文件缺失！")
+        exit(0)
 
     parser = argparse.ArgumentParser()
     # parser.add_argument('--yolov', nargs='?', type=int, default=7, help='The engine version that will be used. Default 5.')
@@ -64,11 +68,17 @@ def load_config():
     # 类别
     categories = []
 
+    print("[INFO]配置载入完成。")
+
 # 图像获取进程
-def get_frame_process(frame_queue: multiprocessing.Queue):
+def get_frame_process(frame_queue: Queue):
     
+    print("[INFO]图像获取进程启动。")
+
     if config.image != 'None' and not config.image is None:
         # 图片测试模式
+        print("[INFO]开启图片测试模式。")
+
         try:
             test_image = cv2.imread(config.image)
         except:
@@ -82,6 +92,8 @@ def get_frame_process(frame_queue: multiprocessing.Queue):
     
     elif config.camera == 'mv':
         # 迈德相机模式
+        print("[INFO]开启迈德相机模式。")
+
         try:
             buffer = camera.buffer()
             buffer.mvsdk_init()
@@ -101,6 +113,8 @@ def get_frame_process(frame_queue: multiprocessing.Queue):
 
     else:
         # opencv 相机模式
+        print("[INFO]开启opencv相机模式。")
+
         try:
             cap = cv2.VideoCapture(config.camera)
         except:
@@ -117,10 +131,12 @@ def get_frame_process(frame_queue: multiprocessing.Queue):
                 print("[WARN]未获取到相机图像！")
                 time.sleep(0.01)
 
-# 图片处理进程
-def frame_processing_process(frame_queue: multiprocessing.Queue, 
-                             processed_frame_queue: multiprocessing.Queue):
-
+# 图像处理进程
+def frame_processing_process(frame_queue: Queue, 
+                             processed_frame_queue: Queue):
+    
+    print("[INFO]启动图像处理进程。")
+    
     while True:
         frame = frame_queue.get()
         frame = cv2.resize(frame, (config.frameW, config.frameH))
@@ -129,12 +145,19 @@ def frame_processing_process(frame_queue: multiprocessing.Queue,
         processed_frame_queue.put(frame)
     
 # YOLO处理进程
-def yolo_process(processed_frame_queue: multiprocessing.Queue, 
-                 boxes_queue: multiprocessing.Queue):
+def yolo_process(processed_frame_queue: Queue, 
+                 boxes_queue: Queue):
     
-    if config.tensorrt:
+    print("[INFO]启动YOLO处理进程。")
 
-        yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
+    if config.tensorrt:
+        print("[INFO]启动TensorRT加速。")
+        try:
+            yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
+        except Exception as e:
+            print(f"[ERROR]TensorRT启动失败。\n{e}")
+            exit(0)
+
         while True:
 
             frame = processed_frame_queue.get()
@@ -144,9 +167,10 @@ def yolo_process(processed_frame_queue: multiprocessing.Queue,
             boxes_queue.put(result_boxes)
 
 # 计算绘制进程
-def calculate_process(boxes_queue: multiprocessing.Queue,
-                      show_queue: multiprocessing.Queue):
+def calculate_process(boxes_queue: Queue,
+                      show_queue: Queue):
     
+    print("[INFO]启动计算绘制进程。")
     while True:
         result_boxes: BoxesWithFrame = boxes_queue.get()
         for idx in range(len(result_boxes.boxes)):
@@ -160,9 +184,11 @@ def calculate_process(boxes_queue: multiprocessing.Queue,
 
 
 # 图像展示进程
-def show_process(show_queue: multiprocessing.Queue):
+def show_process(show_queue: Queue):
 
     if config.result:
+        print("[INFO]启动图像展示进程。")
+
         while True:
             try:
                 frame = show_queue.get()
@@ -177,27 +203,19 @@ def show_process(show_queue: multiprocessing.Queue):
 def main():
     load_config()
 
-    frame_queue = multiprocessing.Queue(1)
-    processed_frame_queue = multiprocessing.Queue(1)
-    boxes_queue = multiprocessing.Queue(1)
-    show_queue = multiprocessing.Queue(1)
+    frame_queue = Queue(1)
+    processed_frame_queue = Queue(1)
+    boxes_queue = Queue(1)
+    show_queue = Queue(1)
 
-    get_frame_p = multiprocessing.Process(target=get_frame_process, 
-                                          args=(frame_queue, ))
-    frame_processing_p = multiprocessing.Process(target=frame_processing_process, 
-                                                 args=(frame_queue, processed_frame_queue, ))
-    yolo_p = multiprocessing.Process(target=yolo_process, 
-                                     args=(processed_frame_queue, boxes_queue, ))
-    calculate_p = multiprocessing.Process(target=calculate_process,
-                                          args=(boxes_queue, show_queue, ))
-    show_p = multiprocessing.Process(target=show_process,
-                                     args=(show_queue, ))
+    process = [Process(target=get_frame_process, args=(frame_queue, )),
+               Process(target=frame_processing_process, args=(frame_queue, processed_frame_queue, )),
+               Process(target=yolo_process, args=(processed_frame_queue, boxes_queue, )),
+               Process(target=calculate_process, args=(boxes_queue, show_queue, )),
+               Process(target=show_process, args=(show_queue, ))]
 
-    get_frame_p.start()
-    frame_processing_p.start()
-    yolo_p.start()
-    calculate_p.start()
-    show_p.start()
+    [p.start() for p in process]
+    [p.join() for p in process]
 
 if __name__ == "__main__":    
     main()
