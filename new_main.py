@@ -162,14 +162,15 @@ def calculate_process(boxes_queue: multiprocessing.Queue,
 # 图像展示进程
 def show_process(show_queue: multiprocessing.Queue):
 
-    while True:
-        try:
-            frame = show_queue.get()
-            cv2.imshow("Result Window", frame)
-            cv2.waitKey(1)
-        except:
-            print("[WARN]无法输出结果图像！")
-            time.sleep(0.01)
+    if config.result:
+        while True:
+            try:
+                frame = show_queue.get()
+                cv2.imshow("Result Window", frame)
+                cv2.waitKey(1)
+            except:
+                print("[WARN]无法输出结果图像！")
+                time.sleep(0.01)
 
 
 # 主函数
