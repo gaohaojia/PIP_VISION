@@ -14,6 +14,9 @@ camera: 0
 # 测试图片路径（None为不进行测试）
 image: None
 
+# 是否展示结果图片
+show_result: True
+
 # 模型文件路径
 engine: /YOLOv5withTensorRT/build/best.engine
 

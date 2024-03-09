@@ -42,12 +42,12 @@ def load_config():
     parser.add_argument('--camera', nargs='?', type=str, default=yml['camera'], 
                         help='相机型号\nmv:迈德\n其他:调用opencv（默认）')
     parser.add_argument('--multiprocessing', nargs='?', type=bool, default=yml['multiprocessing'], 
-                        help='是否启用多进程加速，默认启用')
+                        help='是否启用多进程加速，默认True')
     parser.add_argument('--tensorrt', nargs='?', type=bool, default=yml['tensorrt'], 
-                        help='是否启用TensorRT加速，默认不启用')
-    parser.add_argument('--frameW', nargs='?', type=bool, default=yml['frame_w'], 
+                        help='是否启用TensorRT加速，默认False')
+    parser.add_argument('--frameW', nargs='?', type=int, default=yml['frame_w'], 
                         help='图像处理前宽度')
-    parser.add_argument('--frameH', nargs='?', type=bool, default=yml['frame_h'], 
+    parser.add_argument('--frameH', nargs='?', type=int, default=yml['frame_h'], 
                         help='图像处理前高度')
     parser.add_argument('--engine', nargs='?', type=str, default=RUN_PATH+yml['engine'], 
                         help='.engine path(s).')
@@ -57,6 +57,8 @@ def load_config():
                         help='置信度，默认0.5')
     parser.add_argument('--iou', nargs='?', type=float, default=yml['iou_thresh'], 
                         help='交并比，默认0.5')
+    parser.add_argument('--result', nargs='?', type=bool, default=yml['show_result'], 
+                        help='是否展示结果图片，默认True')
     config = parser.parse_args()
 
     # 类别
