@@ -67,7 +67,7 @@ def load_config():
 # 图像获取进程
 def get_frame_process(frame_queue: multiprocessing.Queue):
     
-    if config.image != 'None':
+    if config.image != 'None' and not config.image is None:
         # 图片测试模式
         try:
             test_image = cv2.imread(config.image)
