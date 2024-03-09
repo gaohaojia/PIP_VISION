@@ -83,6 +83,7 @@ def get_frame_process(frame_queue: Queue):
             test_image = cv2.imread(config.image)
         except:
             print(f"[ERROR]没有找到图片‘{config.image}’！")
+            exit(0)
 
         while True:
             if frame_queue.full:
@@ -99,6 +100,7 @@ def get_frame_process(frame_queue: Queue):
             buffer.mvsdk_init()
         except:
             print("[ERROR]未找到迈德相机！")
+            exit(0)
 
         while True:
             try:
@@ -119,7 +121,7 @@ def get_frame_process(frame_queue: Queue):
             cap = cv2.VideoCapture(config.camera)
         except:
             print(f"[ERROR]没有找到摄像头‘{config.camera}’！")
-            return
+            exit(0)
         
         while True:
             ret, frame = cap.read()
