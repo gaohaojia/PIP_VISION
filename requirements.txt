@@ -1,5 +1,6 @@
-numpy
 pycuda
 pyserial
+pyyaml
+opencv-python
+numpy
 utils
-keyboard
