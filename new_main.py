@@ -86,7 +86,7 @@ def get_frame_process(frame_queue: Queue):
             exit(0)
 
         while True:
-            if frame_queue.full:
+            if frame_queue.full():
                 frame_queue.get()
             frame_queue.put(test_image)
 
@@ -105,7 +105,7 @@ def get_frame_process(frame_queue: Queue):
         while True:
             try:
                 frame = buffer.get_frame()
-                if frame_queue.full:
+                if frame_queue.full():
                     frame_queue.get()
                 frame_queue.put(frame)
             except:
@@ -130,9 +130,11 @@ def get_frame_process(frame_queue: Queue):
             exit(0)
         
         while True:
+            
             ret, frame = cap.read()
+
             if ret:
-                if frame_queue.full:
+                if frame_queue.full():
                     frame_queue.get()
                 frame_queue.put(frame)
             else:
@@ -148,7 +150,7 @@ def frame_processing_process(frame_queue: Queue,
     while True:
         frame = frame_queue.get()
         frame = cv2.resize(frame, (config.frameW, config.frameH))
-        if processed_frame_queue.full:
+        if processed_frame_queue.full():
             processed_frame_queue.get()
         processed_frame_queue.put(frame)
     
@@ -170,7 +172,7 @@ def yolo_process(processed_frame_queue: Queue,
 
             frame = processed_frame_queue.get()
             result_boxes = BoxesWithFrame(*yolo_wrapper.infer(frame), frame)
-            if boxes_queue.full:
+            if boxes_queue.full():
                 boxes_queue.get()
             boxes_queue.put(result_boxes)
 
@@ -186,7 +188,7 @@ def calculate_process(boxes_queue: Queue,
                                    result_boxes.frame, 
                                    [192,192,192],
                                    label=f"{categories[int(result_boxes.classid[idx])]}:{result_boxes.scores[idx]:.2f}")
-            if show_queue.full:
+            if show_queue.full():
                 show_queue.get()
             show_queue.put(result_boxes.frame)
 
@@ -211,10 +213,10 @@ def show_process(show_queue: Queue):
 def main():
     load_config()
 
-    frame_queue = Queue(1)
-    processed_frame_queue = Queue(1)
-    boxes_queue = Queue(1)
-    show_queue = Queue(1)
+    frame_queue = Queue(maxsize=1)
+    processed_frame_queue = Queue(maxsize=1)
+    boxes_queue = Queue(maxsize=1)
+    show_queue = Queue(maxsize=1)
 
     process = [Process(target=get_frame_process, args=(frame_queue, )),
                Process(target=frame_processing_process, args=(frame_queue, processed_frame_queue, )),
