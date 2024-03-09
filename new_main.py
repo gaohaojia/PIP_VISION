@@ -123,6 +123,12 @@ def get_frame_process(frame_queue: Queue):
             print(f"[ERROR]没有找到摄像头‘{config.camera}’！")
             exit(0)
         
+        if cap.isOpened:
+            print(f"[INFO]获取到相机{config.camera}")
+        else:
+            print(f"[ERROR]没有找到摄像头‘{config.camera}’！")
+            exit(0)
+        
         while True:
             ret, frame = cap.read()
             if ret:
