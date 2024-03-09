@@ -130,9 +130,7 @@ def get_frame_process(frame_queue: Queue):
             exit(0)
         
         while True:
-            
             ret, frame = cap.read()
-
             if ret:
                 if frame_queue.full():
                     frame_queue.get()
@@ -156,12 +154,15 @@ def frame_processing_process(frame_queue: Queue,
     
 # YOLO处理进程
 def yolo_process(processed_frame_queue: Queue, 
-                 boxes_queue: Queue):
+                 boxes_queue: Queue,
+                 show_queue: Queue):
     
     print("[INFO]启动YOLO处理进程。")
 
     if config.tensorrt:
-        print("[INFO]启动TensorRT加速。")
+        # TensorRT 加速模式
+        print("[INFO]启动TensorRT加速模式。")
+
         try:
             yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
         except Exception as e:
@@ -169,12 +170,23 @@ def yolo_process(processed_frame_queue: Queue,
             exit(0)
 
         while True:
-
             frame = processed_frame_queue.get()
             result_boxes = BoxesWithFrame(*yolo_wrapper.infer(frame), frame)
             if boxes_queue.full():
                 boxes_queue.get()
             boxes_queue.put(result_boxes)
+    
+
+    else:
+        # 直出模式
+        print("[INFO]启动直出模式。")
+
+        while True:
+            frame = processed_frame_queue.get()
+            if show_queue.full():
+                show_queue.get()
+            show_queue.put(frame)
+
 
 # 计算绘制进程
 def calculate_process(boxes_queue: Queue,
@@ -220,7 +232,7 @@ def main():
 
     process = [Process(target=get_frame_process, args=(frame_queue, )),
                Process(target=frame_processing_process, args=(frame_queue, processed_frame_queue, )),
-               Process(target=yolo_process, args=(processed_frame_queue, boxes_queue, )),
+               Process(target=yolo_process, args=(processed_frame_queue, boxes_queue, show_queue, )),
                Process(target=calculate_process, args=(boxes_queue, show_queue, )),
                Process(target=show_process, args=(show_queue, ))]
 
