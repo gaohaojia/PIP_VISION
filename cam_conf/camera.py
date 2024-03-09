@@ -3,10 +3,15 @@
 """
 import numpy as np
 import cv2
-from cam_conf import mvsdk
 
 class buffer():
     def __init__(self):
+        pass
+
+    def mvsdk_init(self):
+        
+        from cam_conf import mvsdk
+
         DevList = mvsdk.CameraEnumerateDevice()
         nDev = len(DevList)
         assert nDev > 0, "No camera was found!"

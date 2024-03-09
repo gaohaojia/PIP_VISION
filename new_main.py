@@ -84,6 +84,7 @@ def get_frame_process(frame_queue: multiprocessing.Queue):
         # 迈德相机模式
         try:
             buffer = camera.buffer()
+            buffer.mvsdk_init()
         except:
             print("[ERROR]未找到迈德相机！")
 
