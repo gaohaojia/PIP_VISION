@@ -33,7 +33,7 @@ def load_config():
     RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
 
     with open("config.yml") as f:
-        yml = yaml.load(f)
+        yml = yaml.full_load(f)
 
     parser = argparse.ArgumentParser()
     # parser.add_argument('--yolov', nargs='?', type=int, default=7, help='The engine version that will be used. Default 5.')
