@@ -2,7 +2,6 @@
 该文件被main.py调用，借助官方sdk初始化摄像头。
 """
 import numpy as np
-import cv2
 
 class buffer():
     def __init__(self):
