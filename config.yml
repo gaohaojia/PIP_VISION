@@ -18,10 +18,10 @@ image: None
 show_result: True
 
 # 模型文件路径
-engine: /YOLOv5withTensorRT/build/best.engine
+engine: /model/build/best.engine
 
 # libmyplugins.so 文件路径
-library: /YOLOv5withTensorRT/build/libmyplugins.so
+library: /model/build/libmyplugins.so
 
 # 置信度和较并比
 conf_thresh: 0.5
