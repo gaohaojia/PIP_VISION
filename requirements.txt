@@ -2,5 +2,5 @@ pycuda
 pyserial
 pyyaml
 opencv-python == 4.5.4.60
-numpy
+numpy == 1.23.2
 utils
