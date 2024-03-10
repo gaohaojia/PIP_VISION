@@ -113,7 +113,7 @@ def get_frame_process(config,
                 frame_queue.put(frame)
             except:
                 error_cnt += 1
-                print(f"\033[32m[WARN][{error_cnt}]未获取到迈德相机图像！\033[0m")
+                print(f"\033[33m[WARN][{error_cnt}]未获取到迈德相机图像！\033[0m")
                 if error_cnt >= 10:
                     exit(0)
                 time.sleep(0.1)
@@ -145,7 +145,7 @@ def get_frame_process(config,
                 frame_queue.put(frame)
             else:
                 error_cnt += 1
-                print(f"\033[32m[WARN][{error_cnt}]未获取到相机图像！\033[0m")
+                print(f"\033[33m[WARN][{error_cnt}]未获取到相机图像！\033[0m")
                 if error_cnt >= 10:
                     exit(0)
                 time.sleep(0.1)
@@ -235,7 +235,7 @@ def show_process(config,
                 cv2.waitKey(1)
             except:
                 error_cnt += 1
-                print(f"\033[32m[WARN][{error_cnt}]无法输出结果图像！\033[0m")
+                print(f"\033[33m[WARN][{error_cnt}]无法输出结果图像！\033[0m")
                 if error_cnt >= 10:
                     exit(0)
                 time.sleep(0.1)
