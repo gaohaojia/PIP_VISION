@@ -235,7 +235,11 @@ def show_process(config,
 
         while True:
             try:
+                start_time = time.time()
                 frame = show_queue.get()
+                end_time = time.time()
+                cv2.putText(frame, f"FPS: {1 / (end_time - start_time):.2f}", 
+                            (5,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255), 1)
                 cv2.imshow("Result Window", frame)
                 cv2.waitKey(1)
             except:
