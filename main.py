@@ -6,7 +6,7 @@ import numpy as np
 import argparse
 import os
 
-from multiprocessing import Queue, Process, set_start_method
+from multiprocessing import Queue, Process, set_start_method, Pipe
 
 from camera import controller
 import yolov5TRT
@@ -73,7 +73,7 @@ def load_config():
 
 # 图像获取进程
 def get_frame_process(config, 
-                      frame_queue: Queue):
+                      frame_pipe):
     
     print("[INFO]图像获取进程启动。")
 
@@ -88,9 +88,7 @@ def get_frame_process(config,
             exit(0)
 
         while True:
-            if frame_queue.full():
-                frame_queue.get()
-            frame_queue.put(test_image)
+            frame_pipe.send(test_image)
 
     
     elif config.camera == 'mv':
@@ -109,9 +107,7 @@ def get_frame_process(config,
         while True:
             try:
                 frame = buffer.get_frame()
-                if frame_queue.full():
-                    frame_queue.get()
-                frame_queue.put(frame)
+                frame_pipe.send(frame)
             except:
                 error_cnt += 1
                 print(f"\033[33m[WARN][{error_cnt}]未获取到迈德相机图像！\033[0m")
@@ -142,9 +138,7 @@ def get_frame_process(config,
         while True:
             ret, frame = cap.read()
             if ret:
-                if frame_queue.full():
-                    frame_queue.get()
-                frame_queue.put(frame)
+                frame_pipe.send(frame)
             else:
                 error_cnt += 1
                 print(f"\033[33m[WARN][{error_cnt}]未获取到相机图像！\033[0m")
@@ -155,24 +149,22 @@ def get_frame_process(config,
 
 # 图像处理进程
 def frame_processing_process(config, 
-                             frame_queue: Queue, 
-                             processed_frame_queue: Queue):
+                             frame_pipe, 
+                             processed_frame_pipe):
     
     print("[INFO]启动图像处理进程。")
     
     frame = None
     while True:
-        frame = frame_queue.get()
+        frame = frame_pipe.recv()
         frame = cv2.resize(frame, (config.frameW, config.frameH))
-        if processed_frame_queue.full():
-            processed_frame_queue.get()
-        processed_frame_queue.put(frame)
+        processed_frame_pipe.send(frame)
     
 # YOLO处理进程
 def yolo_process(config,
-                 processed_frame_queue: Queue, 
-                 boxes_queue: Queue,
-                 show_queue: Queue):
+                 processed_frame_pipe, 
+                 boxes_pipe,
+                 show_pipe):
     
     print("[INFO]启动YOLO处理进程。")
 
@@ -188,11 +180,9 @@ def yolo_process(config,
             exit(0)
 
         while True:
-            frame = processed_frame_queue.get()
+            frame = processed_frame_pipe.recv()
             result_boxes = BoxesWithFrame(*yolo_wrapper.infer(frame), frame)
-            if boxes_queue.full():
-                boxes_queue.get()
-            boxes_queue.put(result_boxes)
+            boxes_pipe.send(result_boxes)
     
 
     else:
@@ -200,33 +190,29 @@ def yolo_process(config,
         print("[INFO]启动直出模式。")
 
         while True:
-            frame = processed_frame_queue.get()
-            if show_queue.full():
-                show_queue.get()
-            show_queue.put(frame)
+            frame = processed_frame_pipe.recv()
+            show_pipe.send(frame)
 
 
 # 计算绘制进程
 def calculate_process(categories,
-                      boxes_queue: Queue,
-                      show_queue: Queue):
+                      boxes_pipe,
+                      show_pipe):
     
     print("[INFO]启动计算绘制进程。")
     while True:
-        result_boxes: BoxesWithFrame = boxes_queue.get()
+        result_boxes: BoxesWithFrame = boxes_pipe.recv()
         for idx in range(len(result_boxes.boxes)):
             yolov5TRT.plot_one_box(result_boxes.boxes[idx], 
                                    result_boxes.frame, 
                                    [192,192,192],
                                    label=f"{categories[int(result_boxes.classid[idx])]}:{result_boxes.scores[idx]:.2f}")
-        if show_queue.full():
-            show_queue.get()
-        show_queue.put(result_boxes.frame)
+        show_pipe.send(result_boxes.frame)
 
 
 # 图像展示进程
 def show_process(config,
-                 show_queue: Queue):
+                 show_pipe):
 
     if config.result:
         print("[INFO]启动图像展示进程。")
@@ -236,7 +222,7 @@ def show_process(config,
         while True:
             try:
                 start_time = time.time()
-                frame = show_queue.get()
+                frame = show_pipe.recv()
                 end_time = time.time()
                 cv2.putText(frame, f"FPS: {1 / (end_time - start_time):.2f}", 
                             (5,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255), 1)
@@ -256,16 +242,22 @@ def main():
     load_config()
 
     set_start_method('spawn')
-    frame_queue = Queue(maxsize=2)
-    processed_frame_queue = Queue(maxsize=2)
-    boxes_queue = Queue(maxsize=2)
-    show_queue = Queue(maxsize=2)
 
-    process = [Process(target=get_frame_process, args=(config, frame_queue, )),
-               Process(target=frame_processing_process, args=(config, frame_queue, processed_frame_queue, )),
-               Process(target=yolo_process, args=(config, processed_frame_queue, boxes_queue, show_queue, )),
-               Process(target=calculate_process, args=(categories, boxes_queue, show_queue, )),
-               Process(target=show_process, args=(config, show_queue, ))]
+    frame_pipe = Pipe()
+    preocessed_frame_pipe = Pipe()
+    boxes_pipe = Pipe()
+    show_pipe = Pipe()
+
+    # frame_queue = Queue(maxsize=2)
+    # processed_frame_queue = Queue(maxsize=2)
+    # boxes_queue = Queue(maxsize=2)
+    # show_queue = Queue(maxsize=2)
+
+    process = [Process(target=get_frame_process, args=(config, frame_pipe[0], )),
+               Process(target=frame_processing_process, args=(config, frame_pipe[1], preocessed_frame_pipe[0], )),
+               Process(target=yolo_process, args=(config, preocessed_frame_pipe[1], boxes_pipe[0], show_pipe[0], )),
+               Process(target=calculate_process, args=(categories, boxes_pipe[1], show_pipe[0], )),
+               Process(target=show_process, args=(config, show_pipe[1], ))]
 
     [p.start() for p in process]
     [p.join() for p in process]
