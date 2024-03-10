@@ -5,7 +5,7 @@ import numpy as np
 import argparse
 import os
 
-from multiprocessing import Queue, Process
+from multiprocessing import Queue, Process, set_start_method
 
 from camera import controller
 import yolov5TRT
@@ -71,7 +71,8 @@ def load_config():
     print("[INFO]配置载入完成。")
 
 # 图像获取进程
-def get_frame_process(frame_queue: Queue):
+def get_frame_process(config, 
+                      frame_queue: Queue):
     
     print("[INFO]图像获取进程启动。")
 
@@ -140,7 +141,8 @@ def get_frame_process(frame_queue: Queue):
                 time.sleep(0.01)
 
 # 图像处理进程
-def frame_processing_process(frame_queue: Queue, 
+def frame_processing_process(config, 
+                             frame_queue: Queue, 
                              processed_frame_queue: Queue):
     
     print("[INFO]启动图像处理进程。")
@@ -153,7 +155,8 @@ def frame_processing_process(frame_queue: Queue,
         processed_frame_queue.put(frame)
     
 # YOLO处理进程
-def yolo_process(processed_frame_queue: Queue, 
+def yolo_process(config,
+                 processed_frame_queue: Queue, 
                  boxes_queue: Queue,
                  show_queue: Queue):
     
@@ -189,7 +192,8 @@ def yolo_process(processed_frame_queue: Queue,
 
 
 # 计算绘制进程
-def calculate_process(boxes_queue: Queue,
+def calculate_process(config,
+                      boxes_queue: Queue,
                       show_queue: Queue):
     
     print("[INFO]启动计算绘制进程。")
@@ -206,7 +210,8 @@ def calculate_process(boxes_queue: Queue,
 
 
 # 图像展示进程
-def show_process(show_queue: Queue):
+def show_process(config,
+                 show_queue: Queue):
 
     if config.result:
         print("[INFO]启动图像展示进程。")
@@ -225,16 +230,17 @@ def show_process(show_queue: Queue):
 def main():
     load_config()
 
+    set_start_method('spawn')
     frame_queue = Queue(maxsize=1)
     processed_frame_queue = Queue(maxsize=1)
     boxes_queue = Queue(maxsize=1)
     show_queue = Queue(maxsize=1)
 
-    process = [Process(target=get_frame_process, args=(frame_queue, )),
-               Process(target=frame_processing_process, args=(frame_queue, processed_frame_queue, )),
-               Process(target=yolo_process, args=(processed_frame_queue, boxes_queue, show_queue, )),
-               Process(target=calculate_process, args=(boxes_queue, show_queue, )),
-               Process(target=show_process, args=(show_queue, ))]
+    process = [Process(target=get_frame_process, args=(config, frame_queue, )),
+               Process(target=frame_processing_process, args=(config, frame_queue, processed_frame_queue, )),
+               Process(target=yolo_process, args=(config, processed_frame_queue, boxes_queue, show_queue, )),
+               Process(target=calculate_process, args=(config, boxes_queue, show_queue, )),
+               Process(target=show_process, args=(config, show_queue, ))]
 
     [p.start() for p in process]
     [p.join() for p in process]
