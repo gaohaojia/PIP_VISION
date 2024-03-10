@@ -36,7 +36,7 @@ def load_config():
         with open("config.yml") as f:
             yml = yaml.full_load(f)
     except:
-        print("[ERROR]配置文件缺失！")
+        print("\033[31m[ERROR]配置文件缺失！\033[0m")
         exit(0)
 
     parser = argparse.ArgumentParser()
@@ -83,7 +83,7 @@ def get_frame_process(config,
         try:
             test_image = cv2.imread(config.image)
         except:
-            print(f"[ERROR]没有找到图片‘{config.image}’！")
+            print(f"\033[31m[ERROR]没有找到图片‘{config.image}’！\033[0m")
             exit(0)
 
         while True:
@@ -100,7 +100,7 @@ def get_frame_process(config,
             buffer = controller.buffer()
             buffer.mvsdk_init()
         except:
-            print("[ERROR]未找到迈德相机！")
+            print("\033[31m[ERROR]未找到迈德相机！\033[0m")
             exit(0)
 
         error_cnt = 0 # 错误次数
@@ -113,7 +113,7 @@ def get_frame_process(config,
                 frame_queue.put(frame)
             except:
                 error_cnt += 1
-                print(f"[WARN][{error_cnt}]未获取到迈德相机图像！")
+                print(f"\033[32m[WARN][{error_cnt}]未获取到迈德相机图像！\033[0m")
                 if error_cnt >= 10:
                     exit(0)
                 time.sleep(0.1)
@@ -126,13 +126,13 @@ def get_frame_process(config,
         try:
             cap = cv2.VideoCapture(config.camera)
         except:
-            print(f"[ERROR]没有找到摄像头‘{config.camera}’！")
+            print(f"\033[31m[ERROR]没有找到摄像头‘{config.camera}’！\033[0m")
             exit(0)
         
         if cap.isOpened:
             print(f"[INFO]获取到相机{config.camera}")
         else:
-            print(f"[ERROR]没有找到摄像头‘{config.camera}’！")
+            print(f"\033[31m[ERROR]没有找到摄像头‘{config.camera}’！\033[0m")
             exit(0)
 
         error_cnt = 0 # 错误次数
@@ -145,7 +145,7 @@ def get_frame_process(config,
                 frame_queue.put(frame)
             else:
                 error_cnt += 1
-                print(f"[WARN][{error_cnt}]未获取到相机图像！")
+                print(f"\033[32m[WARN][{error_cnt}]未获取到相机图像！\033[0m")
                 if error_cnt >= 10:
                     exit(0)
                 time.sleep(0.1)
@@ -179,7 +179,7 @@ def yolo_process(config,
         try:
             yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
         except Exception as e:
-            print(f"[ERROR]TensorRT启动失败。\n{e}\n\n")
+            print(f"\033[31m[ERROR]TensorRT启动失败。\n{e}\033[0m")
             exit(0)
 
         while True:
@@ -235,7 +235,7 @@ def show_process(config,
                 cv2.waitKey(1)
             except:
                 error_cnt += 1
-                print(f"[WARN][{error_cnt}]无法输出结果图像！")
+                print(f"\033[32m[WARN][{error_cnt}]无法输出结果图像！\033[0m")
                 if error_cnt >= 10:
                     exit(0)
                 time.sleep(0.1)
