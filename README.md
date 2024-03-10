@@ -9,6 +9,7 @@ PIP战队算法组深度学习自瞄方案2.0仓库。\
 ## 使用方式
 ### PC (x86_64)
 ```bash
+pip3 install -r requirements.txt
 cd model/build
 cmake -DCMAKE_CUDA_ARCHITECTURES=75 ..
 make
@@ -16,6 +17,7 @@ make
 ```
 ### Jetson NX (armv8)
 ```bash
+pip3 install -r requirements.txt
 cd model/build
 cmake ..
 make -j6
