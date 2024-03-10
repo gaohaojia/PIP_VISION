@@ -115,6 +115,7 @@ def get_frame_process(config,
                 error_cnt += 1
                 print(f"\033[33m[WARN][{error_cnt}]未获取到迈德相机图像！\033[0m")
                 if error_cnt >= 10:
+                    print(f"\033[31m[ERROR]未获取到迈德相机图像！\033[0m")
                     exit(0)
                 time.sleep(0.1)
 
@@ -147,6 +148,7 @@ def get_frame_process(config,
                 error_cnt += 1
                 print(f"\033[33m[WARN][{error_cnt}]未获取到相机图像！\033[0m")
                 if error_cnt >= 10:
+                    print(f"\033[31m[ERROR]未获取到相机图像！\033[0m")
                     exit(0)
                 time.sleep(0.1)
 
@@ -237,6 +239,7 @@ def show_process(config,
                 error_cnt += 1
                 print(f"\033[33m[WARN][{error_cnt}]无法输出结果图像！\033[0m")
                 if error_cnt >= 10:
+                    print(f"\033[31m[ERROR]无法输出结果图像！\033[0m")
                     exit(0)
                 time.sleep(0.1)
 
