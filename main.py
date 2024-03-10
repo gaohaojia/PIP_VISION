@@ -160,6 +160,7 @@ def frame_processing_process(config,
     
     print("[INFO]启动图像处理进程。")
     
+    frame = None
     while True:
         frame = frame_queue.get()
         frame = cv2.resize(frame, (config.frameW, config.frameH))
@@ -251,10 +252,10 @@ def main():
     load_config()
 
     set_start_method('spawn')
-    frame_queue = Queue(maxsize=1)
-    processed_frame_queue = Queue(maxsize=1)
-    boxes_queue = Queue(maxsize=1)
-    show_queue = Queue(maxsize=1)
+    frame_queue = Queue(maxsize=2)
+    processed_frame_queue = Queue(maxsize=2)
+    boxes_queue = Queue(maxsize=2)
+    show_queue = Queue(maxsize=2)
 
     process = [Process(target=get_frame_process, args=(config, frame_queue, )),
                Process(target=frame_processing_process, args=(config, frame_queue, processed_frame_queue, )),
