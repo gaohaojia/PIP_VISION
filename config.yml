@@ -26,3 +26,27 @@ library: /model/build/libmyplugins.so
 # 置信度和较并比
 conf_thresh: 0.5
 iou_thresh: 0.5
+
+# 类别
+categories: 
+  - armor1red
+  - armor1blue
+  - armor1grey
+  - armor2red
+  - armor2blue
+  - armor2grey
+  - armor3red
+  - armor3blue
+  - armor3grey
+  - armor4red
+  - armor4blue
+  - armor4grey
+  - armor5red
+  - armor5blue
+  - armor5grey
+  - armor7red
+  - armor7blue
+  - armor7grey
+  - nonactivate
+  - done
+  - wait

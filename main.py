@@ -1,3 +1,4 @@
+import ctypes
 import yaml
 import time
 import cv2
@@ -66,7 +67,7 @@ def load_config():
     config = parser.parse_args()
 
     # 类别
-    categories = []
+    categories = yml['categories']
 
     print("[INFO]配置载入完成。")
 
@@ -179,6 +180,7 @@ def yolo_process(config,
         print("[INFO]启动TensorRT加速模式。")
 
         try:
+            ctypes.CDLL(config.library)   
             yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
         except Exception as e:
             print(f"\033[31m[ERROR]TensorRT启动失败。\n{e}\033[0m")
@@ -204,7 +206,7 @@ def yolo_process(config,
 
 
 # 计算绘制进程
-def calculate_process(config,
+def calculate_process(categories,
                       boxes_queue: Queue,
                       show_queue: Queue):
     
@@ -216,9 +218,9 @@ def calculate_process(config,
                                    result_boxes.frame, 
                                    [192,192,192],
                                    label=f"{categories[int(result_boxes.classid[idx])]}:{result_boxes.scores[idx]:.2f}")
-            if show_queue.full():
-                show_queue.get()
-            show_queue.put(result_boxes.frame)
+        if show_queue.full():
+            show_queue.get()
+        show_queue.put(result_boxes.frame)
 
 
 # 图像展示进程
@@ -257,7 +259,7 @@ def main():
     process = [Process(target=get_frame_process, args=(config, frame_queue, )),
                Process(target=frame_processing_process, args=(config, frame_queue, processed_frame_queue, )),
                Process(target=yolo_process, args=(config, processed_frame_queue, boxes_queue, show_queue, )),
-               Process(target=calculate_process, args=(config, boxes_queue, show_queue, )),
+               Process(target=calculate_process, args=(categories, boxes_queue, show_queue, )),
                Process(target=show_process, args=(config, show_queue, ))]
 
     [p.start() for p in process]
