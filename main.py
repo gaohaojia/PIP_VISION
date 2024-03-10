@@ -71,6 +71,11 @@ def load_config():
 
     print("[INFO]配置载入完成。")
 
+# 图像处理函数
+def frame_processing(config, frame):
+    frame = cv2.resize(frame, (config.frameW, config.frameH))
+    return frame
+
 # 图像获取进程
 def get_frame_process(config, 
                       frame_pipe):
@@ -86,6 +91,8 @@ def get_frame_process(config,
         except:
             print(f"\033[31m[ERROR]没有找到图片‘{config.image}’！\033[0m")
             exit(0)
+        
+        test_image = frame_processing(config, test_image)
 
         while True:
             frame_pipe.send(test_image)
@@ -107,6 +114,7 @@ def get_frame_process(config,
         while True:
             try:
                 frame = buffer.get_frame()
+                frame = frame_processing(config, frame)
                 frame_pipe.send(frame)
             except:
                 error_cnt += 1
@@ -138,6 +146,7 @@ def get_frame_process(config,
         while True:
             ret, frame = cap.read()
             if ret:
+                frame = frame_processing(config, frame)
                 frame_pipe.send(frame)
             else:
                 error_cnt += 1
@@ -146,23 +155,10 @@ def get_frame_process(config,
                     print(f"\033[31m[ERROR]未获取到相机图像！\033[0m")
                     exit(0)
                 time.sleep(0.1)
-
-# 图像处理进程
-def frame_processing_process(config, 
-                             frame_pipe, 
-                             processed_frame_pipe):
-    
-    print("[INFO]启动图像处理进程。")
-    
-    frame = None
-    while True:
-        frame = frame_pipe.recv()
-        frame = cv2.resize(frame, (config.frameW, config.frameH))
-        processed_frame_pipe.send(frame)
     
 # YOLO处理进程
 def yolo_process(config,
-                 processed_frame_pipe, 
+                 frame_pipe, 
                  boxes_pipe,
                  show_pipe):
     
@@ -180,7 +176,7 @@ def yolo_process(config,
             exit(0)
 
         while True:
-            frame = processed_frame_pipe.recv()
+            frame = frame_pipe.recv()
             result_boxes = BoxesWithFrame(*yolo_wrapper.infer(frame), frame)
             boxes_pipe.send(result_boxes)
     
@@ -190,7 +186,7 @@ def yolo_process(config,
         print("[INFO]启动直出模式。")
 
         while True:
-            frame = processed_frame_pipe.recv()
+            frame = frame_pipe.recv()
             show_pipe.send(frame)
 
 
@@ -244,7 +240,6 @@ def main():
     set_start_method('spawn')
 
     frame_pipe = Pipe()
-    preocessed_frame_pipe = Pipe()
     boxes_pipe = Pipe()
     show_pipe = Pipe()
 
@@ -254,8 +249,7 @@ def main():
     # show_queue = Queue(maxsize=2)
 
     process = [Process(target=get_frame_process, args=(config, frame_pipe[0], )),
-               Process(target=frame_processing_process, args=(config, frame_pipe[1], preocessed_frame_pipe[0], )),
-               Process(target=yolo_process, args=(config, preocessed_frame_pipe[1], boxes_pipe[0], show_pipe[0], )),
+               Process(target=yolo_process, args=(config, frame_pipe[1], boxes_pipe[0], show_pipe[0], )),
                Process(target=calculate_process, args=(categories, boxes_pipe[1], show_pipe[0], )),
                Process(target=show_process, args=(config, show_pipe[1], ))]
 
