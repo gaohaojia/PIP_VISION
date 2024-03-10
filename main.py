@@ -103,6 +103,8 @@ def get_frame_process(config,
             print("[ERROR]未找到迈德相机！")
             exit(0)
 
+        error_cnt = 0 # 错误次数
+
         while True:
             try:
                 frame = buffer.get_frame()
@@ -110,8 +112,11 @@ def get_frame_process(config,
                     frame_queue.get()
                 frame_queue.put(frame)
             except:
-                print("[WARN]未获取到迈德相机图像！")
-                time.sleep(0.01)
+                error_cnt += 1
+                print(f"[WARN][{error_cnt}]未获取到迈德相机图像！")
+                if error_cnt >= 10:
+                    exit(0)
+                time.sleep(0.1)
 
 
     else:
@@ -129,6 +134,8 @@ def get_frame_process(config,
         else:
             print(f"[ERROR]没有找到摄像头‘{config.camera}’！")
             exit(0)
+
+        error_cnt = 0 # 错误次数
         
         while True:
             ret, frame = cap.read()
@@ -137,8 +144,11 @@ def get_frame_process(config,
                     frame_queue.get()
                 frame_queue.put(frame)
             else:
-                print("[WARN]未获取到相机图像！")
-                time.sleep(0.01)
+                error_cnt += 1
+                print(f"[WARN][{error_cnt}]未获取到相机图像！")
+                if error_cnt >= 10:
+                    exit(0)
+                time.sleep(0.1)
 
 # 图像处理进程
 def frame_processing_process(config, 
@@ -169,7 +179,7 @@ def yolo_process(config,
         try:
             yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
         except Exception as e:
-            print(f"[ERROR]TensorRT启动失败。\n{e}")
+            print(f"[ERROR]TensorRT启动失败。\n{e}\n\n")
             exit(0)
 
         while True:
@@ -216,14 +226,19 @@ def show_process(config,
     if config.result:
         print("[INFO]启动图像展示进程。")
 
+        error_cnt = 0 # 错误次数
+
         while True:
             try:
                 frame = show_queue.get()
                 cv2.imshow("Result Window", frame)
                 cv2.waitKey(1)
             except:
-                print("[WARN]无法输出结果图像！")
-                time.sleep(0.01)
+                error_cnt += 1
+                print(f"[WARN][{error_cnt}]无法输出结果图像！")
+                if error_cnt >= 10:
+                    exit(0)
+                time.sleep(0.1)
 
 
 # 主函数
