@@ -98,8 +98,8 @@ def get_frame_process(config,
         try:
             buffer = controller.buffer()
             buffer.mvsdk_init()
-        except:
-            print("\033[31m[ERROR]未找到迈德相机！\033[0m")
+        except Exception as e:
+            print(f"\033[31m[ERROR]未找到迈德相机！\n{e}\033[0m")
             exit(0)
 
         error_cnt = 0 # 错误次数
