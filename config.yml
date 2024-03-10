@@ -2,7 +2,7 @@
 multiprocessing: True
 
 # 是否使用TensorRT加速
-tensorrt: False
+tensorrt: True
 
 # 图像处理前大小
 frame_w: 640
@@ -12,7 +12,7 @@ frame_h: 480
 camera: 0
 
 # 测试图片路径（None为不进行测试）
-image: None
+image: images/000001.jpeg
 
 # 是否展示结果图片
 show_result: True
