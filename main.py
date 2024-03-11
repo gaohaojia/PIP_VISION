@@ -45,8 +45,8 @@ def load_config():
                         help='测试图片路径，默认不进行测试')
     parser.add_argument('--camera', nargs='?', type=str, default=yml['camera'], 
                         help='相机型号\nmv:迈德\n其他:调用opencv（默认）')
-    parser.add_argument('--multiprocessing', nargs='?', type=bool, default=yml['multiprocessing'], 
-                        help='是否启用多进程加速，默认True')
+    # parser.add_argument('--multiprocessing', nargs='?', type=bool, default=yml['multiprocessing'], 
+    #                     help='是否启用多进程加速，默认True')
     parser.add_argument('--tensorrt', nargs='?', type=bool, default=yml['tensorrt'], 
                         help='是否启用TensorRT加速，默认False')
     parser.add_argument('--frameW', nargs='?', type=int, default=yml['frame_w'], 
@@ -63,6 +63,8 @@ def load_config():
                         help='交并比，默认0.5')
     parser.add_argument('--result', nargs='?', type=bool, default=yml['show_result'], 
                         help='是否展示结果图片，默认True')
+    parser.add_argument('--color', nargs='?', type=str, default=yml['color'], 
+                        help='友军颜色\nred:红（默认）\nblue:蓝')
     config = parser.parse_args()
 
     # 类别

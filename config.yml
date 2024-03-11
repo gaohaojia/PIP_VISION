@@ -1,18 +1,8 @@
 # 是否使用多进程加速
-multiprocessing: True
+# multiprocessing: True
 
 # 是否使用TensorRT加速
 tensorrt: True
-
-# 图像处理前大小
-frame_w: 640
-frame_h: 480
-
-# 相机类型（mv：迈德）
-camera: 0
-
-# 测试图片路径（None为不进行测试）
-image: images/000001.jpeg
 
 # 是否展示结果图片
 show_result: True
@@ -23,9 +13,22 @@ engine: /model/build/best.engine
 # libmyplugins.so 文件路径
 library: /model/build/libmyplugins.so
 
+# 测试图片路径（None为不进行测试）
+image: images/000001.jpeg
+
+# 相机类型（mv：迈德）
+camera: 0
+
+# 图像处理前大小
+frame_w: 640
+frame_h: 480
+
 # 置信度和较并比
 conf_thresh: 0.5
 iou_thresh: 0.5
+
+# 友军颜色（red：红，blue：蓝）
+color: red
 
 # 类别
 categories: 
