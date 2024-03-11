@@ -4,12 +4,14 @@ import time
 import cv2
 import numpy as np
 import argparse
+import serial
 import os
 
 from multiprocessing import Queue, Process, set_start_method, Pipe
 
 from camera import controller
 import yolov5TRT
+from check_friends import check_friends
 
 # 用于存储boxes各种信息的类。
 class Boxes():
@@ -36,6 +38,17 @@ def print_warn(warn: str):
 # 输出error信息
 def print_error(error: str):
     print(f"\033[31m[ERROR]{error}\033[0m")
+
+def get_transdata_from_10b(transdata: int):
+    """
+    description: 将10进制信息转化为用于通讯的16进制信息。
+    param:
+        transdata:  欲通讯的10进制信息。
+    return:
+        可用于通讯的16进制信息。
+    """
+    b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
+    return [b16s[:2], b16s[2:]]
 
 # 载入配置
 def load_config():
@@ -75,6 +88,14 @@ def load_config():
                         help='交并比，默认0.5')
     parser.add_argument('--result', nargs='?', type=bool, default=yml['show_result'], 
                         help='是否展示结果图片，默认True')
+    parser.add_argument('--serial', nargs='?', type=bool, default=yml['serial'], 
+                        help='是否开启串口通信，默认True')
+    parser.add_argument('--port', nargs='?', type=str, default=yml['port'], 
+                        help='串口Port，默认/dev/ttyTHS0')
+    parser.add_argument('--baudrate', nargs='?', type=str, default=yml['baudrate'], 
+                        help='串口Baudrate，默认115200')
+    parser.add_argument('--timeout', nargs='?', type=str, default=yml['timeout'], 
+                        help='串口Timeout，默认0.0001')
     parser.add_argument('--color', nargs='?', type=str, default=yml['color'], 
                         help='友军颜色\nred:红（默认）\nblue:蓝')
     config = parser.parse_args()
@@ -195,7 +216,6 @@ def yolo_process(config,
             boxes_pipe.send(result_boxes)
             if config.result:
                 processed_pipe.send(frame)
-    
 
     else:
         # 直出模式
@@ -208,17 +228,34 @@ def yolo_process(config,
 
 # 计算绘制进程
 def calculate_process(config,
+                      ser,
                       categories,
                       boxes_pipe,
                       processed_pipe,
                       result_pipe):
     
     print_info("启动计算绘制进程。")
+
+    check_friends_wrapper = check_friends(config.color)
+
     while True:
         start_time = time.time()
         result_boxes: Boxes = boxes_pipe.recv()
+
+        # 友军保护
+        result_boxes = check_friends_wrapper.get_enemy_info(result_boxes)
+        if result_boxes.boxes:
+            box = result_boxes.boxes[0]
+            delta_x = int(box[0] - box[2])
+            delta_y = int(box[1] - box[3])
+            centre_x = int(box[0] + delta_x / 2)
+            centre_y = int(box[1] + delta_y / 2)
+            x_1, x_2 = get_transdata_from_10b()
+
         end_time = time.time()
+
         if config.result:
+            # 绘制检测框
             frame = processed_pipe.recv()
             for idx in range(len(result_boxes.boxes)):
                 yolov5TRT.plot_one_box(result_boxes.boxes[idx], 
@@ -229,6 +266,8 @@ def calculate_process(config,
         
         else:
             print(f"\r[INFO]FPS: {1 / (end_time - start_time):.2f}, 类别: {[categories[int(classid)] for classid in result_boxes.classid]}"+' '*10, end="")
+
+        
 
 
 # 结果展示进程
@@ -269,9 +308,32 @@ def main():
     result_pipe = Pipe(duplex=False)
 
     process = [Process(target=get_frame_process, args=(config, frame_pipe[1], )),
-               Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], result_pipe[1], )),
-               Process(target=calculate_process, args=(config, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], ))]
+               Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], result_pipe[1], ))]
+    
+    if config.serial:
+        try:
+            ser = serial.Serial(config.port, config.baudrate, timeout=config.timeout)
+            ser.write(b'\x45')
 
+            # 获取红蓝信息
+            while True:
+                if ser.read() == b'\xff':
+                    config.color = 1
+                    break
+                elif ser.read() == b'\xaa':
+                    config.color = 2
+                    break
+            print_info(f"已开启串口Port: {config.port}, Baudrate: {config.baudrate}。")
+            process.append(Process(target=calculate_process, args=(config, ser, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
+        except:
+            print_error("串口开启失败！")
+            exit(0)
+    else:
+        if config.color == "red":
+            config.color = 1
+        else:
+            config.color = 2
+        process.append(Process(target=calculate_process, args=(config, None, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
     if config.result:
         process.append(Process(target=result_process, args=(config, result_pipe[0], )))
 
