@@ -211,7 +211,7 @@ def calculate_process(config,
                       categories,
                       boxes_pipe,
                       processed_pipe,
-                      show_pipe):
+                      result_pipe):
     
     print_info("启动计算绘制进程。")
     while True:
@@ -225,7 +225,7 @@ def calculate_process(config,
                                        frame, 
                                        [192,192,192],
                                        label=f"{categories[int(result_boxes.classid[idx])]}:{result_boxes.scores[idx]:.2f}")
-            show_pipe.send(frame)
+            result_pipe.send(frame)
         
         else:
             print(f"\r[INFO]FPS: {1 / (end_time - start_time):.2f}, 类别: {[categories[int(classid)] for classid in result_boxes.classid]}", end="")
@@ -233,29 +233,28 @@ def calculate_process(config,
 
 # 结果展示进程
 def result_process(config,
-                 show_pipe):
+                   result_pipe):
 
-    if config.result:
-        print_info("启动图像展示进程。")
-
-        error_cnt = 0 # 错误次数
-
-        while True:
-            try:
-                start_time = time.time()
-                frame = show_pipe.recv()
-                end_time = time.time()
-                cv2.putText(frame, f"FPS: {1 / (end_time - start_time):.2f}", 
-                            (5,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255), 1)
-                cv2.imshow("Result Window", frame)
-                cv2.waitKey(1)
-            except:
-                error_cnt += 1
-                print_warn(f"[{error_cnt}]无法输出结果图像！")
-                if error_cnt >= 10:
-                    print_error("无法输出结果图像！")
-                    exit(0)
-                time.sleep(0.1)
+    print_info("启动图像展示进程。")
+    
+    error_cnt = 0 # 错误次数
+    
+    while True:
+        try:
+            start_time = time.time()
+            frame = result_pipe.recv()
+            end_time = time.time()
+            cv2.putText(frame, f"FPS: {1 / (end_time - start_time):.2f}", 
+                        (5,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255), 1)
+            cv2.imshow("Result Window", frame)
+            cv2.waitKey(1)
+        except:
+            error_cnt += 1
+            print_warn(f"[{error_cnt}]无法输出结果图像！")
+            if error_cnt >= 10:
+                print_error("无法输出结果图像！")
+                exit(0)
+            time.sleep(0.1)
 
 
 # 主函数
@@ -267,12 +266,14 @@ def main():
     frame_pipe = Pipe(duplex=False)
     boxes_pipe = Pipe(duplex=False)
     processed_pipe = Pipe(duplex=False)
-    show_pipe = Pipe(duplex=False)
+    result_pipe = Pipe(duplex=False)
 
     process = [Process(target=get_frame_process, args=(config, frame_pipe[1], )),
-               Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], show_pipe[1], )),
-               Process(target=calculate_process, args=(config, categories, boxes_pipe[0], processed_pipe[0], show_pipe[1], )),
-               Process(target=result_process, args=(config, show_pipe[0], ))]
+               Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], result_pipe[1], )),
+               Process(target=calculate_process, args=(config, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], ))]
+
+    if config.result:
+        process.append(Process(target=result_process, args=(config, result_pipe[0], )))
 
     [p.start() for p in process]
     [p.join() for p in process]
