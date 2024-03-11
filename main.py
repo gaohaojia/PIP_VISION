@@ -25,6 +25,18 @@ class Boxes():
         self.scores = scores    
         self.classid = classid  
 
+# 输出info信息
+def print_info(info: str):
+    print(f"[INFO]{info}")
+
+# 输出warn信息
+def print_warn(warn: str):
+    print(f"\033[33m[WARN]{warn}\033[0m")
+
+# 输出error信息
+def print_error(error: str):
+    print(f"\033[31m[ERROR]{error}\033[0m")
+
 # 载入配置
 def load_config():
 
@@ -36,7 +48,7 @@ def load_config():
         with open("config.yml") as f:
             yml = yaml.full_load(f)
     except:
-        print("\033[31m[ERROR]配置文件缺失！\033[0m")
+        print_error("配置文件缺失！")
         exit(0)
 
     parser = argparse.ArgumentParser()
@@ -70,7 +82,7 @@ def load_config():
     # 类别
     categories = yml['categories']
 
-    print("[INFO]配置载入完成。")
+    print_info("配置载入完成。")
 
 # 图像处理函数
 def frame_processing(config, frame):
@@ -81,16 +93,16 @@ def frame_processing(config, frame):
 def get_frame_process(config, 
                       frame_pipe):
     
-    print("[INFO]图像获取进程启动。")
+    print_info("图像获取进程启动。")
 
     if config.image != 'None' and not config.image is None:
         # 图片测试模式
-        print("[INFO]开启图片测试模式。")
+        print_info("开启图片测试模式。")
 
         try:
             test_image = cv2.imread(config.image)
         except:
-            print(f"\033[31m[ERROR]没有找到图片‘{config.image}’！\033[0m")
+            print_error(f"没有找到图片‘{config.image}’！")
             exit(0)
         
         test_image = frame_processing(config, test_image)
@@ -101,13 +113,13 @@ def get_frame_process(config,
     
     elif config.camera == 'mv':
         # 迈德相机模式
-        print("[INFO]开启迈德相机模式。")
+        print_info("开启迈德相机模式。")
 
         try:
             buffer = controller.buffer()
             buffer.mvsdk_init()
         except Exception as e:
-            print(f"\033[31m[ERROR]未找到迈德相机！\n{e}\033[0m")
+            print_error("未找到迈德相机！")
             exit(0)
 
         error_cnt = 0 # 错误次数
@@ -119,27 +131,27 @@ def get_frame_process(config,
                 frame_pipe.send(frame)
             except:
                 error_cnt += 1
-                print(f"\033[33m[WARN][{error_cnt}]未获取到迈德相机图像！\033[0m")
+                print_warn("[{error_cnt}]未获取到迈德相机图像！")
                 if error_cnt >= 10:
-                    print(f"\033[31m[ERROR]未获取到迈德相机图像！\033[0m")
+                    print_error("未获取到迈德相机图像！")
                     exit(0)
                 time.sleep(0.1)
 
 
     else:
         # opencv 相机模式
-        print("[INFO]开启opencv相机模式。")
+        print_info("开启opencv相机模式。")
 
         try:
             cap = cv2.VideoCapture(config.camera)
         except:
-            print(f"\033[31m[ERROR]没有找到摄像头‘{config.camera}’！\033[0m")
+            print_error(f"没有找到摄像头‘{config.camera}’！")
             exit(0)
         
         if cap.isOpened:
-            print(f"[INFO]获取到相机{config.camera}")
+            print_info(f"获取到相机{config.camera}")
         else:
-            print(f"\033[31m[ERROR]没有找到摄像头‘{config.camera}’！\033[0m")
+            print_error(f"没有找到摄像头‘{config.camera}’！")
             exit(0)
 
         error_cnt = 0 # 错误次数
@@ -151,9 +163,9 @@ def get_frame_process(config,
                 frame_pipe.send(frame)
             else:
                 error_cnt += 1
-                print(f"\033[33m[WARN][{error_cnt}]未获取到相机图像！\033[0m")
+                print_warn(f"[{error_cnt}]未获取到相机图像！")
                 if error_cnt >= 10:
-                    print(f"\033[31m[ERROR]未获取到相机图像！\033[0m")
+                    print_error("未获取到相机图像！")
                     exit(0)
                 time.sleep(0.1)
     
@@ -164,17 +176,17 @@ def yolo_process(config,
                  processed_pipe,
                  show_pipe):
     
-    print("[INFO]启动YOLO处理进程。")
+    print_info("启动YOLO处理进程。")
 
     if config.tensorrt:
         # TensorRT 加速模式
-        print("[INFO]启动TensorRT加速模式。")
+        print_info("启动TensorRT加速模式。")
 
         try:
             ctypes.CDLL(config.library)   
             yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
         except Exception as e:
-            print(f"\033[31m[ERROR]TensorRT启动失败。\n{e}\033[0m")
+            print_error("TensorRT启动失败。")
             exit(0)
 
         while True:
@@ -187,7 +199,7 @@ def yolo_process(config,
 
     else:
         # 直出模式
-        print("[INFO]启动直出模式。")
+        print_info("启动直出模式。")
 
         while True:
             frame = frame_pipe.recv()
@@ -201,7 +213,7 @@ def calculate_process(config,
                       processed_pipe,
                       show_pipe):
     
-    print("[INFO]启动计算绘制进程。")
+    print_info("启动计算绘制进程。")
     while True:
         start_time = time.time()
         result_boxes: Boxes = boxes_pipe.recv()
@@ -220,11 +232,11 @@ def calculate_process(config,
 
 
 # 结果展示进程
-def show_process(config,
+def result_process(config,
                  show_pipe):
 
     if config.result:
-        print("[INFO]启动图像展示进程。")
+        print_info("启动图像展示进程。")
 
         error_cnt = 0 # 错误次数
 
@@ -239,9 +251,9 @@ def show_process(config,
                 cv2.waitKey(1)
             except:
                 error_cnt += 1
-                print(f"\033[33m[WARN][{error_cnt}]无法输出结果图像！\033[0m")
+                print_warn(f"[{error_cnt}]无法输出结果图像！")
                 if error_cnt >= 10:
-                    print(f"\033[31m[ERROR]无法输出结果图像！\033[0m")
+                    print_error("无法输出结果图像！")
                     exit(0)
                 time.sleep(0.1)
 
@@ -260,7 +272,7 @@ def main():
     process = [Process(target=get_frame_process, args=(config, frame_pipe[1], )),
                Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], show_pipe[1], )),
                Process(target=calculate_process, args=(config, categories, boxes_pipe[0], processed_pipe[0], show_pipe[1], )),
-               Process(target=show_process, args=(config, show_pipe[0], ))]
+               Process(target=result_process, args=(config, show_pipe[0], ))]
 
     [p.start() for p in process]
     [p.join() for p in process]
