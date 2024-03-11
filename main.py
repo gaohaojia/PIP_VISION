@@ -12,9 +12,9 @@ from camera import controller
 import yolov5TRT
 
 # 用于存储boxes各种信息的类。
-class BoxesWithFrame():
+class Boxes():
     
-    def __init__(self, boxes, scores, classid, frame):
+    def __init__(self, boxes, scores, classid):
         """
         param:
             boxes:   boxes位置信息。
@@ -24,7 +24,6 @@ class BoxesWithFrame():
         self.boxes = boxes      
         self.scores = scores    
         self.classid = classid  
-        self.frame = frame
 
 # 载入配置
 def load_config():
@@ -160,6 +159,7 @@ def get_frame_process(config,
 def yolo_process(config,
                  frame_pipe, 
                  boxes_pipe,
+                 processed_pipe,
                  show_pipe):
     
     print("[INFO]启动YOLO处理进程。")
@@ -177,8 +177,10 @@ def yolo_process(config,
 
         while True:
             frame = frame_pipe.recv()
-            result_boxes = BoxesWithFrame(*yolo_wrapper.infer(frame), frame)
+            result_boxes = Boxes(*yolo_wrapper.infer(frame))
             boxes_pipe.send(result_boxes)
+            if config.result:
+                processed_pipe.send(frame)
     
 
     else:
@@ -191,19 +193,23 @@ def yolo_process(config,
 
 
 # 计算绘制进程
-def calculate_process(categories,
+def calculate_process(config,
+                      categories,
                       boxes_pipe,
+                      processed_pipe,
                       show_pipe):
     
     print("[INFO]启动计算绘制进程。")
     while True:
-        result_boxes: BoxesWithFrame = boxes_pipe.recv()
-        for idx in range(len(result_boxes.boxes)):
-            yolov5TRT.plot_one_box(result_boxes.boxes[idx], 
-                                   result_boxes.frame, 
-                                   [192,192,192],
-                                   label=f"{categories[int(result_boxes.classid[idx])]}:{result_boxes.scores[idx]:.2f}")
-        show_pipe.send(result_boxes.frame)
+        result_boxes: Boxes = boxes_pipe.recv()
+        if config.result:
+            frame = processed_pipe.recv()
+            for idx in range(len(result_boxes.boxes)):
+                yolov5TRT.plot_one_box(result_boxes.boxes[idx], 
+                                       frame, 
+                                       [192,192,192],
+                                       label=f"{categories[int(result_boxes.classid[idx])]}:{result_boxes.scores[idx]:.2f}")
+            show_pipe.send(frame)
 
 
 # 图像展示进程
@@ -239,19 +245,15 @@ def main():
 
     set_start_method('spawn')
 
-    frame_pipe = Pipe()
-    boxes_pipe = Pipe()
-    show_pipe = Pipe()
+    frame_pipe = Pipe(duplex=False)
+    boxes_pipe = Pipe(duplex=False)
+    processed_pipe = Pipe(duplex=False)
+    show_pipe = Pipe(duplex=False)
 
-    # frame_queue = Queue(maxsize=2)
-    # processed_frame_queue = Queue(maxsize=2)
-    # boxes_queue = Queue(maxsize=2)
-    # show_queue = Queue(maxsize=2)
-
-    process = [Process(target=get_frame_process, args=(config, frame_pipe[0], )),
-               Process(target=yolo_process, args=(config, frame_pipe[1], boxes_pipe[0], show_pipe[0], )),
-               Process(target=calculate_process, args=(categories, boxes_pipe[1], show_pipe[0], )),
-               Process(target=show_process, args=(config, show_pipe[1], ))]
+    process = [Process(target=get_frame_process, args=(config, frame_pipe[1], )),
+               Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], show_pipe[1], )),
+               Process(target=calculate_process, args=(config, categories, boxes_pipe[0], processed_pipe[0], show_pipe[1], )),
+               Process(target=show_process, args=(config, show_pipe[0], ))]
 
     [p.start() for p in process]
     [p.join() for p in process]
