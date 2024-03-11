@@ -201,7 +201,9 @@ def calculate_process(config,
     
     print("[INFO]启动计算绘制进程。")
     while True:
+        start_time = time.time()
         result_boxes: Boxes = boxes_pipe.recv()
+        end_time = time.time()
         if config.result:
             frame = processed_pipe.recv()
             for idx in range(len(result_boxes.boxes)):
@@ -210,9 +212,12 @@ def calculate_process(config,
                                        [192,192,192],
                                        label=f"{categories[int(result_boxes.classid[idx])]}:{result_boxes.scores[idx]:.2f}")
             show_pipe.send(frame)
+        
+        else:
+            print(f"\r[INFO]FPS: {1 / (end_time - start_time):.2f}, 类别: {[categories[int(classid)] for classid in result_boxes.classid]}", end="")
 
 
-# 图像展示进程
+# 结果展示进程
 def show_process(config,
                  show_pipe):
 
