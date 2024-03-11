@@ -228,7 +228,7 @@ def calculate_process(config,
             result_pipe.send(frame)
         
         else:
-            print(f"\r[INFO]FPS: {1 / (end_time - start_time):.2f}, 类别: {[categories[int(classid)] for classid in result_boxes.classid]}", end="")
+            print(f"\r[INFO]FPS: {1 / (end_time - start_time):.2f}, 类别: {[categories[int(classid)] for classid in result_boxes.classid]}"+' '*10, end="")
 
 
 # 结果展示进程
