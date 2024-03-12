@@ -38,7 +38,7 @@ def print_warn(warn: str):
 # 输出error信息
 def print_error(error: str):
     print(f"\033[31m[ERROR]{error}\033[0m")
-
+# 串口通讯器
 class Communicator():
     def __init__(self, ser: serial.Serial) -> None:
         self.ser = ser
@@ -107,15 +107,19 @@ def load_config():
                         help='装甲板高度（mm），默认125')
     config = parser.parse_args()
 
+    # 添加相机内参
     if config.camera == "mv":
+        # 相机矩阵
         config.camera_matrix = np.array([
             [yml['fx'], 0,         yml['cx']],
             [0,         yml['fy'], yml['cy']],
             [0,         0,         1]
         ], dtype=np.float32)
+        # 畸变矩阵
         config.camera_dis = np.array([
             yml['k1'], yml['k2'], yml['p1'], yml['p2'], yml['k3']
         ], dtype=np.float32)
+        # 装甲板现实世界高度（毫米）
         config.object_point = np.array([
             [0, config.armorH/2, 0],
             [0, -config.armorH/2, 0]
@@ -340,6 +344,7 @@ def main():
     
     if config.serial:
         try:
+            # 测试串口
             ser = serial.Serial(config.port, config.baudrate, timeout=config.timeout)
             ser.write(b'\x45')
 
