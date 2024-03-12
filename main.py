@@ -18,10 +18,10 @@ class Boxes():
     def __init__(self, boxes, scores, classid, distance=[]) -> None:
         """
         param:
-            boxes:    boxes位置信息。
-            scores:   boxes的置信度。
-            classid:  boxes的id。
-            distance: boxes的距离。
+            boxes:     boxes位置信息。
+            scores:    boxes的置信度。
+            classid:   boxes的id。
+            distance:  boxes的距离。
         """
         self.boxes = boxes
         self.scores = scores
