@@ -13,6 +13,9 @@ class buffer():
     def get_frame(self):
         return self._buffer.get_frame()
     
+    def set_once_wb(self):
+        self._buffer.set_once_wb()
+    
 class _MVBuffer():
     
     def __init__(self):
@@ -49,9 +52,13 @@ class _MVBuffer():
         # 相机模式切换成连续采集
         self.mvsdk.CameraSetTriggerMode(self.hCamera, 0)
 
-        # 手动曝光，曝光时间30ms
+        # 手动曝光，曝光时间10ms
         self.mvsdk.CameraSetAeState(self.hCamera, 0)
-        self.mvsdk.CameraSetExposureTime(self.hCamera, 30 * 1000)
+        self.mvsdk.CameraSetExposureTime(self.hCamera, 10 * 1000)
+
+        # 设置为手动白平衡并进行一次白平衡
+        self.mvsdk.CameraSetWbMode(self.hCamera, False)
+        self.mvsdk.CameraSetOnceWB(self.hCamera)
 
         # 让SDK内部取图线程开始工作
         self.mvsdk.CameraPlay(self.hCamera)
@@ -80,3 +87,7 @@ class _MVBuffer():
         frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
                             1 if FrameHead.uiMediaType == self.mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
         return frame
+    
+    # 进行一次白平衡
+    def set_once_wb(self):
+        self.mvsdk.CameraSetOnceWB(self.hCamera)
