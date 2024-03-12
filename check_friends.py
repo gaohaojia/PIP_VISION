@@ -3,18 +3,30 @@
 """
 import numpy as np
 
+class Boxes():
+    def __init__(self, boxes, scores, classid) -> None:
+        """
+        param:
+            boxes:   boxes位置信息。
+            scores:  boxes的置信度。
+            classid: boxes的id。
+        """
+        self.boxes = boxes      
+        self.scores = scores    
+        self.classid = classid  
+
 class check_friends():
     """
     description: 检测友军
     """
-    def __init__(self, color):
+    def __init__(self, color) -> None:
         if color == 1:
             friends = [0, 3, 6, 9, 12, 15]
         else:
             friends = [1, 4, 7, 10, 13, 16]
         self.friends_list = friends + [2, 5, 8, 11, 14, 17, 18, 19, 20]
 
-    def get_nonfriend_from_all(self, all, friends):
+    def get_nonfriend_from_all(self, all, friends) -> np.ndarray:
         """
         description: 获取非友军相关参数。
         param:
@@ -29,7 +41,7 @@ class check_friends():
                 new.append(i)
         return np.array(new)
 
-    def get_enemy_info(self, result_boxes):
+    def get_enemy_info(self, result_boxes) -> Boxes:
         """
         description: 处理识别的box，输出敌军的box信息。
         param:

@@ -9,7 +9,7 @@ import pycuda.driver as cuda
 import pycuda.autoinit # 勿删，该包有调用，灰色是编译器问题。
 import tensorrt as trt
 
-def plot_one_box(x, img, color=None, label=None, line_thickness=None):
+def plot_one_box(x, img, color=None, label=None, line_thickness=None) -> None:
     """
     description: Plots one bounding box on image img,
                  this function comes from YoLov5 project.
@@ -48,7 +48,7 @@ class YoLov5TRT(object):
     """
     description: A YOLOv5 class that warps TensorRT ops, preprocess and postprocess ops.
     """
-    def __init__(self, engine_file_path, conf_thresh, iou_threshold):
+    def __init__(self, engine_file_path, conf_thresh, iou_threshold) -> None:
 
         self.conf_thresh = conf_thresh
         self.iou_threshold = iou_threshold
@@ -146,7 +146,7 @@ class YoLov5TRT(object):
         
         return (result_boxes, result_scores, result_classid)
 
-    def destroy(self):
+    def destroy(self) -> None:
         # Remove any context from the top of the context stack, deactivating it.
         self.ctx.pop()
 
