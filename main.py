@@ -15,7 +15,6 @@ from check_friends import check_friends
 
 # 用于存储boxes各种信息的类。
 class Boxes():
-    
     def __init__(self, boxes, scores, classid):
         """
         param:
@@ -38,6 +37,7 @@ def print_warn(warn: str):
 # 输出error信息
 def print_error(error: str):
     print(f"\033[31m[ERROR]{error}\033[0m")
+    
 # 串口通讯器
 class Communicator():
     def __init__(self, ser: serial.Serial) -> None:
@@ -59,9 +59,7 @@ class Communicator():
 def load_config():
 
     global config, categories
-
     RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
-
     try:
         with open("config.yml") as f:
             yml = yaml.full_load(f)
@@ -138,7 +136,6 @@ def frame_processing(config, frame):
 # 图像获取进程
 def get_frame_process(config, 
                       frame_pipe):
-    
     print_info("图像获取进程启动。")
 
     if config.image != 'None' and not config.image is None:
@@ -221,7 +218,6 @@ def yolo_process(config,
                  boxes_pipe,
                  processed_pipe,
                  show_pipe):
-    
     print_info("启动YOLO处理进程。")
 
     if config.tensorrt:
@@ -258,7 +254,6 @@ def calculate_process(config,
                       boxes_pipe,
                       processed_pipe,
                       result_pipe):
-    
     print_info("启动计算绘制进程。")
 
     check_friends_wrapper = check_friends(config.color)
@@ -305,7 +300,6 @@ def calculate_process(config,
 # 结果展示进程
 def result_process(config,
                    result_pipe):
-
     print_info("启动图像展示进程。")
     
     error_cnt = 0 # 错误次数
@@ -331,7 +325,6 @@ def result_process(config,
 # 主函数
 def main():
     load_config()
-
     set_start_method('spawn')
 
     frame_pipe = Pipe(duplex=False)
