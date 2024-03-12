@@ -69,7 +69,7 @@ def calculate_process(frame_queue: multiprocessing.Queue, end_pipe):
     data['p1'] = float(Camera_intrinsic['dist'][0][2])
     data['p2'] = float(Camera_intrinsic['dist'][0][3])
     data['k3'] = float(Camera_intrinsic['dist'][0][4])
-    with open('config.yml', 'w', encoding='utf-8') as file:
+    with open('camera/config.yml', 'w', encoding='utf-8') as file:
         yaml.dump(data=data, stream=file, allow_unicode=True)
     end_pipe.send(1)
 
