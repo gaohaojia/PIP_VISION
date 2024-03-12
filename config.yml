@@ -38,6 +38,20 @@ iou_thresh: 0.5
 # 友军颜色（red：红，blue：蓝）
 color: red
 
+# 装甲板高度(mm)
+armor_h: 125
+
+# 相机参数
+fx: 
+fy:
+cx:
+cy:
+k1:
+k2:
+k3:
+p1:
+p2:
+
 # 类别，请勿轻易修改
 categories: 
   - armor1red

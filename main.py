@@ -39,16 +39,21 @@ def print_warn(warn: str):
 def print_error(error: str):
     print(f"\033[31m[ERROR]{error}\033[0m")
 
-def get_transdata_from_10b(transdata: int):
-    """
-    description: 将10进制信息转化为用于通讯的16进制信息。
-    param:
-        transdata:  欲通讯的10进制信息。
-    return:
-        可用于通讯的16进制信息。
-    """
-    b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
-    return [b16s[:2], b16s[2:]]
+class Communicator():
+    def __init__(self, ser: serial.Serial) -> None:
+        self.ser = ser
+
+    def transdata(self, transdata: int):
+        """
+        description: 将10进制信息转化为用于通讯的16进制信息。
+        param:
+            transdata:  欲通讯的10进制信息。
+        return:
+            可用于通讯的16进制信息。
+        """
+        b16s = (4 - len(hex(transdata)[2:])) * '0' + hex(transdata)[2:]
+        self.ser.write(bytes.fromhex(b16s[:2]))
+        self.ser.write(bytes.fromhex(b16s[2:]))
 
 # 载入配置
 def load_config():
@@ -98,7 +103,23 @@ def load_config():
                         help='串口Timeout，默认0.0001')
     parser.add_argument('--color', nargs='?', type=str, default=yml['color'], 
                         help='友军颜色\nred:红（默认）\nblue:蓝')
+    parser.add_argument('--armorH', nargs='?', type=float, default=yml['armor_h'], 
+                        help='装甲板高度（mm），默认125')
     config = parser.parse_args()
+
+    if config.camera == "mv":
+        config.camera_matrix = np.array([
+            [yml['fx'], 0,         yml['cx']],
+            [0,         yml['fy'], yml['cy']],
+            [0,         0,         1]
+        ], dtype=np.float32)
+        config.camera_dis = np.array([
+            yml['k1'], yml['k2'], yml['p1'], yml['p2'], yml['k3']
+        ], dtype=np.float32)
+        config.object_point = np.array([
+            [0, config.armorH/2, 0],
+            [0, -config.armorH/2, 0]
+        ], dtype=np.float32)
 
     # 类别
     categories = yml['categories']
@@ -237,6 +258,7 @@ def calculate_process(config,
     print_info("启动计算绘制进程。")
 
     check_friends_wrapper = check_friends(config.color)
+    communicator = Communicator(ser)
 
     while True:
         start_time = time.time()
@@ -250,7 +272,13 @@ def calculate_process(config,
             delta_y = int(box[1] - box[3])
             centre_x = int(box[0] + delta_x / 2)
             centre_y = int(box[1] + delta_y / 2)
-            x_1, x_2 = get_transdata_from_10b()
+            point2d = np.array([
+                [0, delta_y/2],
+                [0, -delta_y/2]
+            ], dtype=np.float32)
+            ret, rvec, tvec = cv2.solvePnP(config.object_point, point2d, config.camera_matrix, config.camera_dis)
+            print(rvec, tvec)
+            
 
         end_time = time.time()
 
