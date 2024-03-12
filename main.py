@@ -40,8 +40,24 @@ def print_error(error: str) -> None:
     
 # 串口通讯器
 class Communicator():
-    def __init__(self, ser: serial.Serial) -> None:
-        self.ser = ser
+    def __init__(self) -> None:
+        try:
+            # 测试串口
+            ser = serial.Serial(config.port, config.baudrate, timeout=config.timeout)
+            ser.write(b'\x45')
+
+            # 获取红蓝信息
+            while True:
+                if ser.read() == b'\xff':
+                    config.color = 1
+                    break
+                elif ser.read() == b'\xaa':
+                    config.color = 2
+                    break
+            print_info(f"已开启串口Port: {config.port}, Baudrate: {config.baudrate}。")
+        except:
+            print_error("串口开启失败！")
+            exit(0)
 
     def transdata(self, transdata: int) -> None:
         """
@@ -249,7 +265,7 @@ def yolo_process(config,
 
 # 计算绘制进程
 def calculate_process(config,
-                      ser,
+                      communicator,
                       categories,
                       boxes_pipe,
                       processed_pipe,
@@ -257,7 +273,6 @@ def calculate_process(config,
     print_info("启动计算绘制进程。")
 
     check_friends_wrapper = check_friends(config.color)
-    communicator = Communicator(ser)
 
     while True:
         start_time = time.time()
@@ -336,24 +351,8 @@ def main() -> None:
                Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], result_pipe[1], ))]
     
     if config.serial:
-        try:
-            # 测试串口
-            ser = serial.Serial(config.port, config.baudrate, timeout=config.timeout)
-            ser.write(b'\x45')
-
-            # 获取红蓝信息
-            while True:
-                if ser.read() == b'\xff':
-                    config.color = 1
-                    break
-                elif ser.read() == b'\xaa':
-                    config.color = 2
-                    break
-            print_info(f"已开启串口Port: {config.port}, Baudrate: {config.baudrate}。")
-            process.append(Process(target=calculate_process, args=(config, ser, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
-        except:
-            print_error("串口开启失败！")
-            exit(0)
+        communicator = Communicator()
+        process.append(Process(target=calculate_process, args=(config, communicator, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
     else:
         if config.color == "red":
             config.color = 1
