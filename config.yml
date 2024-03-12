@@ -1,77 +1,9 @@
-# 是否使用多进程加速
-# multiprocessing: True
-
-# 是否使用TensorRT加速
-tensorrt: True
-
-# 是否展示结果图片
-show_result: True
-
-# 是否启动串口通信
-serial: False
-
-# 串口参数
-port: /dev/ttyTHS0
-baudrate: 115200
-timeout: 0.0001
-
-# 模型文件路径
-engine: /model/build/best.engine
-
-# libmyplugins.so 文件路径
-library: /model/build/libmyplugins.so
-
-# 测试图片路径（None为不进行测试）
-image: images/000001.jpeg
-
-# 相机类型（mv：迈德）
-camera: 0
-
-# 图像处理前大小
-frame_w: 640
-frame_h: 480
-
-# 置信度和较并比
-conf_thresh: 0.5
-iou_thresh: 0.5
-
-# 友军颜色（red：红，blue：蓝）
-color: red
-
-# 装甲板高度(mm)
-armor_h: 125
-
-# 相机参数
-fx: 
-fy:
-cx:
-cy:
-k1:
-k2:
-k3:
-p1:
-p2:
-
-# 类别，请勿轻易修改
-categories: 
-  - armor1red
-  - armor1blue
-  - armor1grey
-  - armor2red
-  - armor2blue
-  - armor2grey
-  - armor3red
-  - armor3blue
-  - armor3grey
-  - armor4red
-  - armor4blue
-  - armor4grey
-  - armor5red
-  - armor5blue
-  - armor5grey
-  - armor7red
-  - armor7blue
-  - armor7grey
-  - nonactivate
-  - done
-  - wait
+cx: 603.6834516432036
+cy: 497.2323057310505
+fx: 1331.7752710858151
+fy: 1300.6919117307045
+k1: -0.8335700158337742
+k2: 12.29217665645393
+k3: -49.242221757654555
+p1: -0.045409042469706916
+p2: -0.02179031546371322
