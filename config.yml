@@ -39,7 +39,7 @@ iou_thresh: 0.5
 color: blue
 
 # 装甲板高度(mm)
-armor_h: 90
+armor_h: 125
 big_armor_w: 130
 small_armor_w: 140
 

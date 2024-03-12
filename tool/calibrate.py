@@ -35,6 +35,7 @@ def calculate_process(frame_queue: multiprocessing.Queue, end_pipe):
     print("\r[WARN]未发现棋盘格！", end='')
     while True:
         img = frame_queue.get()
+        img = cv2.resize(img, (640, 480))
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         ret,gray = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
         size = gray.shape[::-1]

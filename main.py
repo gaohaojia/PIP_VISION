@@ -15,16 +15,18 @@ from check_friends import check_friends
 
 # 用于存储boxes各种信息的类。
 class Boxes():
-    def __init__(self, boxes, scores, classid) -> None:
+    def __init__(self, boxes, scores, classid, distance=[]) -> None:
         """
         param:
-            boxes:   boxes位置信息。
-            scores:  boxes的置信度。
-            classid: boxes的id。
+            boxes:    boxes位置信息。
+            scores:   boxes的置信度。
+            classid:  boxes的id。
+            distance: boxes的距离。
         """
-        self.boxes = boxes      
-        self.scores = scores    
-        self.classid = classid  
+        self.boxes = boxes
+        self.scores = scores
+        self.classid = classid
+        self.distance = distance
 
 # 输出info信息
 def print_info(info: str) -> None:
@@ -254,7 +256,7 @@ def yolo_process(config,
 
 # 计算绘制进程
 def calculate_process(config,
-                      communicator,
+                      communicator: Communicator,
                       categories,
                       matrix_queue,
                       boxes_pipe,
@@ -276,10 +278,29 @@ def calculate_process(config,
         # 友军保护
         result_boxes = check_friends_wrapper.get_enemy_info(result_boxes)
         if config.camera == "mv" and result_boxes.boxes:
-            box = result_boxes.boxes[0]
-            delta_x = int(box[0] - box[2])
-            delta_y = int(box[1] - box[3])
 
+            # 最优目标
+            best_box = result_boxes.boxes[0]
+            best_bia = 999999
+            for box in result_boxes.boxes:
+                delta_x = int(box[0] - box[2])
+                delta_y = int(box[1] - box[3])
+
+                centre_x = int(box[0] + delta_x / 2)
+                centre_y = int(box[1] + delta_y / 2)
+
+                bia_x = abs(centre_x - config.frameW)
+                bia_y = abs(centre_y - config.frameH)
+
+                if bia_x**2 + bia_y**2 < best_bia:
+                    best_box = box
+                    best_bia = bia_x**2 + bia_y**2
+
+            delta_x = int(best_box[0] - best_box[2])
+            delta_y = int(best_box[1] - best_box[3])
+            centre_x = int(best_box[0] + delta_x / 2)
+            centre_y = int(best_box[1] + delta_y / 2)
+                    
             # 判断大小装甲板
             if delta_y > 1.8*delta_x:
                 # 大装甲板现实大小（毫米）
@@ -292,23 +313,26 @@ def calculate_process(config,
             else:
                 # 大装甲板现实大小（毫米）
                 object_point = np.float32([
-                    [-config.armorSW/2 * 0.9, -config.armorH/2, 0],
-                    [config.armorSW/2 * 0.9, -config.armorH/2, 0],
-                    [config.armorSW/2 * 0.9, config.armorH/2, 0],
-                    [-config.armorSW/2 * 0.9, config.armorH/2, 0],
+                    [-config.armorSW/2, -config.armorH/2, 0],
+                    [config.armorSW/2, -config.armorH/2, 0],
+                    [config.armorSW/2, config.armorH/2, 0],
+                    [-config.armorSW/2, config.armorH/2, 0],
                 ])
 
-            centre_x = int(box[0] + delta_x / 2)
-            centre_y = int(box[1] + delta_y / 2)
             point2d = np.float32([
-                [-delta_x/2 * 0.9, -delta_y/2],
-                [delta_x/2 * 0.9, -delta_y/2],
-                [delta_x/2 * 0.9, delta_y/2],
-                [-delta_x/2 * 0.9, delta_y/2]
+                [-delta_x/2, -delta_y/2],
+                [delta_x/2, -delta_y/2],
+                [delta_x/2, delta_y/2],
+                [-delta_x/2, delta_y/2]
             ])
 
             ret, rvec, tvec = cv2.solvePnP(object_point, point2d, camera_matrix, camera_dis)
-            print(tvec[2][0])
+            distance = tvec[2][0]
+            print(distance)
+            if config.serial:
+                communicator.transdata(centre_x)
+                communicator.transdata(centre_y)
+                communicator.transdata(distance)
             
 
         end_time = time.time()
