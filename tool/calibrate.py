@@ -11,13 +11,14 @@ h = 6   # 7  - 1
 # 世界坐标系中的棋盘格点,例如(0,0,0), (1,0,0), (2,0,0) ....,(8,5,0)，去掉Z坐标，记为二维矩阵
 objp = np.zeros((w*h,3), np.float32)
 objp[:,:2] = np.mgrid[0:w,0:h].T.reshape(-1,2)
-objp = objp*18.1  # 18.1 mm
+objp = objp*27.4  # 18.1 mm
 
 # 储存棋盘格角点的世界坐标和图像坐标对
 objpoints = [] # 在世界坐标系中的三维点
 imgpoints = [] # 在图像平面的二维点
 #加载pic文件夹下所有的jpg图像
-images = glob.glob('save_images/*.jpg')  #   拍摄的十几张棋盘图片所在目录
+images = glob.glob('tool/save_images/*.jpg')  #   拍摄的十几张棋盘图片所在目录
+print(images)
 
 i=0
 for fname in images:

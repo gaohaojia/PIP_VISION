@@ -1,4 +1,6 @@
 import cv2
+import sys
+sys.path.insert(0, sys.path[0]+"/../")
 from camera import controller
 
 try:
@@ -15,4 +17,4 @@ while True:
     cv2.imshow("Result", frame)
     if cv2.waitKey(1) & 0xFF == ord('j'):
         cnt += 1
-        cv2.imwrite(f"save_images/{cnt}.jpg", frame)
+        cv2.imwrite(f"tool/save_images/{cnt}.jpg", frame)
