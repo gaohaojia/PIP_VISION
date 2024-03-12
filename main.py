@@ -119,25 +119,11 @@ def load_config() -> None:
                         help='友军颜色\nred:红（默认）\nblue:蓝')
     parser.add_argument('--armorH', nargs='?', type=float, default=yml['armor_h'], 
                         help='装甲板高度（mm），默认125')
+    parser.add_argument('--armorBW', nargs='?', type=float, default=yml['big_armor_w'], 
+                        help='大装甲板宽度（mm），默认230')
+    parser.add_argument('--armorSW', nargs='?', type=float, default=yml['small_armor_w'], 
+                        help='小装甲板宽度（mm），默认140')
     config = parser.parse_args()
-
-    # 添加相机内参
-    if config.camera == "mv":
-        # 相机矩阵
-        config.camera_matrix = np.array([
-            [yml['fx'], 0,         yml['cx']],
-            [0,         yml['fy'], yml['cy']],
-            [0,         0,         1]
-        ], dtype=np.float32)
-        # 畸变矩阵
-        config.camera_dis = np.array([
-            yml['k1'], yml['k2'], yml['p1'], yml['p2'], yml['k3']
-        ], dtype=np.float32)
-        # 装甲板现实世界高度（毫米）
-        config.object_point = np.array([
-            [0, config.armorH/2, 0],
-            [0, -config.armorH/2, 0]
-        ], dtype=np.float32)
 
     # 类别
     categories = yml['categories']
@@ -151,7 +137,8 @@ def frame_processing(config, frame) -> np.ndarray:
 
 # 图像获取进程
 def get_frame_process(config, 
-                      frame_pipe) -> None:
+                      frame_pipe,
+                      matrix_queue) -> None:
     print_info("图像获取进程启动。")
 
     if config.image != 'None' and not config.image is None:
@@ -177,8 +164,10 @@ def get_frame_process(config,
         try:
             buffer = controller.buffer()
             buffer.mvsdk_init()
+            matrix_queue.put(buffer.camera_matrix)
+            matrix_queue.put(buffer.camera_dis)
         except Exception as e:
-            print_error("未找到迈德相机！")
+            print_error(f"未找到迈德相机！\n{e}")
             exit(0)
 
         error_cnt = 0 # 错误次数
@@ -230,7 +219,7 @@ def get_frame_process(config,
     
 # YOLO处理进程
 def yolo_process(config,
-                 frame_pipe, 
+                 frame_pipe,
                  boxes_pipe,
                  processed_pipe,
                  show_pipe) -> None:
@@ -267,6 +256,7 @@ def yolo_process(config,
 def calculate_process(config,
                       communicator,
                       categories,
+                      matrix_queue,
                       boxes_pipe,
                       processed_pipe,
                       result_pipe) -> None:
@@ -274,24 +264,51 @@ def calculate_process(config,
 
     check_friends_wrapper = check_friends(config.color)
 
+    if config.camera == "mv":
+        camera_matrix = matrix_queue.get()
+        camera_dis = matrix_queue.get()
+        matrix_queue.close()
+
     while True:
         start_time = time.time()
         result_boxes: Boxes = boxes_pipe.recv()
 
         # 友军保护
         result_boxes = check_friends_wrapper.get_enemy_info(result_boxes)
-        if result_boxes.boxes:
+        if config.camera == "mv" and result_boxes.boxes:
             box = result_boxes.boxes[0]
             delta_x = int(box[0] - box[2])
             delta_y = int(box[1] - box[3])
+
+            # 判断大小装甲板
+            if delta_y > 1.8*delta_x:
+                # 大装甲板现实大小（毫米）
+                object_point = np.float32([
+                    [-config.armorBW/2, -config.armorH/2, 0],
+                    [config.armorBW/2, -config.armorH/2, 0],
+                    [config.armorBW/2, config.armorH/2, 0],
+                    [-config.armorBW/2, config.armorH/2, 0],
+                ])
+            else:
+                # 大装甲板现实大小（毫米）
+                object_point = np.float32([
+                    [-config.armorSW/2 * 0.9, -config.armorH/2, 0],
+                    [config.armorSW/2 * 0.9, -config.armorH/2, 0],
+                    [config.armorSW/2 * 0.9, config.armorH/2, 0],
+                    [-config.armorSW/2 * 0.9, config.armorH/2, 0],
+                ])
+
             centre_x = int(box[0] + delta_x / 2)
             centre_y = int(box[1] + delta_y / 2)
-            point2d = np.array([
-                [0, delta_y/2],
-                [0, -delta_y/2]
-            ], dtype=np.float32)
-            ret, rvec, tvec = cv2.solvePnP(config.object_point, point2d, config.camera_matrix, config.camera_dis)
-            print(rvec, tvec)
+            point2d = np.float32([
+                [-delta_x/2 * 0.9, -delta_y/2],
+                [delta_x/2 * 0.9, -delta_y/2],
+                [delta_x/2 * 0.9, delta_y/2],
+                [-delta_x/2 * 0.9, delta_y/2]
+            ])
+
+            ret, rvec, tvec = cv2.solvePnP(object_point, point2d, camera_matrix, camera_dis)
+            print(tvec[2][0])
             
 
         end_time = time.time()
@@ -346,19 +363,20 @@ def main() -> None:
     boxes_pipe = Pipe(duplex=False)
     processed_pipe = Pipe(duplex=False)
     result_pipe = Pipe(duplex=False)
+    matrix_queue = Queue(maxsize=2)
 
-    process = [Process(target=get_frame_process, args=(config, frame_pipe[1], )),
+    process = [Process(target=get_frame_process, args=(config, frame_pipe[1], matrix_queue, )),
                Process(target=yolo_process, args=(config, frame_pipe[0], boxes_pipe[1], processed_pipe[1], result_pipe[1], ))]
     
     if config.serial:
         communicator = Communicator()
-        process.append(Process(target=calculate_process, args=(config, communicator, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
+        process.append(Process(target=calculate_process, args=(config, communicator, categories, matrix_queue, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
     else:
         if config.color == "red":
             config.color = 1
         else:
             config.color = 2
-        process.append(Process(target=calculate_process, args=(config, None, categories, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
+        process.append(Process(target=calculate_process, args=(config, None, categories, matrix_queue, boxes_pipe[0], processed_pipe[0], result_pipe[1], )))
     if config.result:
         process.append(Process(target=result_process, args=(config, result_pipe[0], )))
 

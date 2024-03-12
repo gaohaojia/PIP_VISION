@@ -2,10 +2,25 @@
 该文件被main.py调用，借助官方sdk初始化摄像头。
 """
 import numpy as np
+import yaml
 
 class buffer():
     def __init__(self):
-        pass
+
+        with open("camera/config.yml") as f:
+            yml = yaml.full_load(f)
+        
+        # 相机矩阵
+        self.camera_matrix = np.float32([
+            [yml['fx'], 0,         yml['cx']],
+            [0,         yml['fy'], yml['cy']],
+            [0,         0,         1]
+        ])
+
+        # 畸变矩阵
+        self.camera_dis = np.float32([
+            yml['k1'], yml['k2'], yml['p1'], yml['p2'], yml['k3']
+        ])
 
     def mvsdk_init(self):
         self._buffer = _MVBuffer()
