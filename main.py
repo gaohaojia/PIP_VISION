@@ -15,7 +15,7 @@ from check_friends import check_friends
 
 # 用于存储boxes各种信息的类。
 class Boxes():
-    def __init__(self, boxes, scores, classid):
+    def __init__(self, boxes, scores, classid) -> None:
         """
         param:
             boxes:   boxes位置信息。
@@ -27,15 +27,15 @@ class Boxes():
         self.classid = classid  
 
 # 输出info信息
-def print_info(info: str):
+def print_info(info: str) -> None:
     print(f"[INFO]{info}")
 
 # 输出warn信息
-def print_warn(warn: str):
+def print_warn(warn: str) -> None:
     print(f"\033[33m[WARN]{warn}\033[0m")
 
 # 输出error信息
-def print_error(error: str):
+def print_error(error: str) -> None:
     print(f"\033[31m[ERROR]{error}\033[0m")
     
 # 串口通讯器
@@ -43,7 +43,7 @@ class Communicator():
     def __init__(self, ser: serial.Serial) -> None:
         self.ser = ser
 
-    def transdata(self, transdata: int):
+    def transdata(self, transdata: int) -> None:
         """
         description: 将10进制信息转化为用于通讯的16进制信息。
         param:
@@ -56,7 +56,7 @@ class Communicator():
         self.ser.write(bytes.fromhex(b16s[2:]))
 
 # 载入配置
-def load_config():
+def load_config() -> None:
 
     global config, categories
     RUN_PATH = os.path.split(os.path.realpath(__file__))[0]
@@ -129,13 +129,13 @@ def load_config():
     print_info("配置载入完成。")
 
 # 图像处理函数
-def frame_processing(config, frame):
+def frame_processing(config, frame) -> np.ndarray:
     frame = cv2.resize(frame, (config.frameW, config.frameH))
     return frame
 
 # 图像获取进程
 def get_frame_process(config, 
-                      frame_pipe):
+                      frame_pipe) -> None:
     print_info("图像获取进程启动。")
 
     if config.image != 'None' and not config.image is None:
@@ -217,7 +217,7 @@ def yolo_process(config,
                  frame_pipe, 
                  boxes_pipe,
                  processed_pipe,
-                 show_pipe):
+                 show_pipe) -> None:
     print_info("启动YOLO处理进程。")
 
     if config.tensorrt:
@@ -253,7 +253,7 @@ def calculate_process(config,
                       categories,
                       boxes_pipe,
                       processed_pipe,
-                      result_pipe):
+                      result_pipe) -> None:
     print_info("启动计算绘制进程。")
 
     check_friends_wrapper = check_friends(config.color)
@@ -299,7 +299,7 @@ def calculate_process(config,
 
 # 结果展示进程
 def result_process(config,
-                   result_pipe):
+                   result_pipe) -> None:
     print_info("启动图像展示进程。")
     
     error_cnt = 0 # 错误次数
@@ -323,7 +323,7 @@ def result_process(config,
 
 
 # 主函数
-def main():
+def main() -> None:
     load_config()
     set_start_method('spawn')
 
