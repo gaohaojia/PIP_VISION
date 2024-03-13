@@ -32,7 +32,7 @@ def calculate_process(frame_queue: multiprocessing.Queue, end_pipe):
     img_points = []     # 存储2D点
     
     cnt = 0 # 成功次数
-    print("\r[WARN]未发现棋盘格！", end='')
+    print("\r[WARN]Can't find the chessboard!", end='')
     while True:
         img = frame_queue.get()
         img = cv2.resize(img, (640, 480))
@@ -50,7 +50,7 @@ def calculate_process(frame_queue: multiprocessing.Queue, end_pipe):
             cv2.drawChessboardCorners(img, (5, 8), corners, ret)  # 记住，OpenCV的绘制函数一般无返回值
             cv2.waitKey(1)
             cnt += 1
-            print('\r[INFO]标定进度:['+'#'*cnt + '-'*(30-cnt), end=']')
+            print('\r[INFO]Progress:['+'#'*cnt + '-'*(30-cnt), end=']')
             if cnt >= 30: 
                 print("")
                 break

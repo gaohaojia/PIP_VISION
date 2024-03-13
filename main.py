@@ -56,9 +56,9 @@ class Communicator():
                 elif ser.read() == b'\xaa':
                     config.color = 2
                     break
-            print_info(f"已开启串口Port: {config.port}, Baudrate: {config.baudrate}。")
+            print_info(f"Start serial Port: {config.port}, Baudrate: {config.baudrate}。")
         except:
-            print_error("串口开启失败！")
+            print_error("Can't open serial!")
             exit(0)
 
     def transdata(self, transdata: int) -> None:
@@ -82,7 +82,7 @@ def load_config() -> None:
         with open("config.yml") as f:
             yml = yaml.full_load(f)
     except:
-        print_error("配置文件缺失！")
+        print_error("Can't find the config file!")
         exit(0)
 
     parser = argparse.ArgumentParser()
@@ -130,7 +130,7 @@ def load_config() -> None:
     # 类别
     categories = yml['categories']
 
-    print_info("配置载入完成。")
+    print_info("Complete config loading.")
 
 # 图像处理函数
 def frame_processing(config, frame) -> np.ndarray:
@@ -141,16 +141,16 @@ def frame_processing(config, frame) -> np.ndarray:
 def get_frame_process(config, 
                       frame_pipe,
                       matrix_queue) -> None:
-    print_info("图像获取进程启动。")
+    print_info("Start get frame process.")
 
     if config.image != 'None' and not config.image is None:
         # 图片测试模式
-        print_info("开启图片测试模式。")
+        print_info("Start image-test mode.")
 
         try:
             test_image = cv2.imread(config.image)
         except:
-            print_error(f"没有找到图片‘{config.image}’！")
+            print_error(f"Can't find the image '{config.image}'!")
             exit(0)
         
         test_image = frame_processing(config, test_image)
@@ -161,7 +161,7 @@ def get_frame_process(config,
     
     elif config.camera == 'mv':
         # 迈德相机模式
-        print_info("开启迈德相机模式。")
+        print_info("Start MV camera mode.")
 
         try:
             buffer = controller.buffer()
@@ -169,7 +169,7 @@ def get_frame_process(config,
             matrix_queue.put(buffer.camera_matrix)
             matrix_queue.put(buffer.camera_dis)
         except Exception as e:
-            print_error(f"未找到迈德相机！\n{e}")
+            print_error(f"Can't find MV camera!\n{e}")
             exit(0)
 
         error_cnt = 0 # 错误次数
@@ -181,27 +181,27 @@ def get_frame_process(config,
                 frame_pipe.send(frame)
             except:
                 error_cnt += 1
-                print_warn("[{error_cnt}]未获取到迈德相机图像！")
+                print_warn("[{error_cnt}]Can't get frame from MV camera!")
                 if error_cnt >= 10:
-                    print_error("未获取到迈德相机图像！")
+                    print_error("Can't get frame from MV camera!")
                     exit(0)
                 time.sleep(0.1)
 
 
     else:
         # opencv 相机模式
-        print_info("开启opencv相机模式。")
+        print_info("Start Web Camera.")
 
         try:
             cap = cv2.VideoCapture(config.camera)
         except:
-            print_error(f"没有找到摄像头‘{config.camera}’！")
+            print_error(f"Can't find Web Camera '{config.camera}'!")
             exit(0)
         
         if cap.isOpened:
-            print_info(f"获取到相机{config.camera}")
+            print_info(f"Get Web Camera '{config.camera}'.")
         else:
-            print_error(f"没有找到摄像头‘{config.camera}’！")
+            print_error(f"Can't get Web Camera '{config.camera}'!")
             exit(0)
 
         error_cnt = 0 # 错误次数
@@ -213,9 +213,9 @@ def get_frame_process(config,
                 frame_pipe.send(frame)
             else:
                 error_cnt += 1
-                print_warn(f"[{error_cnt}]未获取到相机图像！")
+                print_warn(f"[{error_cnt}]Can't get frame from Web Camera!")
                 if error_cnt >= 10:
-                    print_error("未获取到相机图像！")
+                    print_error("Can't get frame from Web Camera!")
                     exit(0)
                 time.sleep(0.1)
     
@@ -225,17 +225,17 @@ def yolo_process(config,
                  boxes_pipe,
                  processed_pipe,
                  show_pipe) -> None:
-    print_info("启动YOLO处理进程。")
+    print_info("Start YOLO process.")
 
     if config.tensorrt:
         # TensorRT 加速模式
-        print_info("启动TensorRT加速模式。")
+        print_info("Start TensorRT mode.")
 
         try:
             ctypes.CDLL(config.library)   
             yolo_wrapper = yolov5TRT.YoLov5TRT(config.engine, config.conf, config.iou)
         except Exception as e:
-            print_error("TensorRT启动失败。")
+            print_error("Can't start TensorRT!")
             exit(0)
 
         while True:
@@ -247,7 +247,7 @@ def yolo_process(config,
 
     else:
         # 直出模式
-        print_info("启动直出模式。")
+        print_info("Start non-TensorRT mode.")
 
         while True:
             frame = frame_pipe.recv()
@@ -262,7 +262,7 @@ def calculate_process(config,
                       boxes_pipe,
                       processed_pipe,
                       result_pipe) -> None:
-    print_info("启动计算绘制进程。")
+    print_info("Start calculate process.")
 
     check_friends_wrapper = check_friends(config.color)
 
@@ -348,7 +348,7 @@ def calculate_process(config,
             result_pipe.send(frame)
         
         else:
-            print(f"\r[INFO]FPS: {1 / (end_time - start_time):.2f}, 类别: {[categories[int(classid)] for classid in result_boxes.classid]}"+' '*10, end="")
+            print(f"\r[INFO]FPS: {1 / (end_time - start_time):.2f}, Category: {[categories[int(classid)] for classid in result_boxes.classid]}"+' '*10, end="")
 
         
 
@@ -356,7 +356,7 @@ def calculate_process(config,
 # 结果展示进程
 def result_process(config,
                    result_pipe) -> None:
-    print_info("启动图像展示进程。")
+    print_info("Start result process.")
     
     error_cnt = 0 # 错误次数
     
@@ -371,9 +371,9 @@ def result_process(config,
             cv2.waitKey(1)
         except:
             error_cnt += 1
-            print_warn(f"[{error_cnt}]无法输出结果图像！")
+            print_warn(f"[{error_cnt}]Can't show the result image!")
             if error_cnt >= 10:
-                print_error("无法输出结果图像！")
+                print_error("Can't show the result image!")
                 exit(0)
             time.sleep(0.1)
 
