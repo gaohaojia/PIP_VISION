@@ -328,7 +328,7 @@ def calculate_process(config,
 
             ret, rvec, tvec = cv2.solvePnP(object_point, point2d, camera_matrix, camera_dis)
             distance = tvec[2][0]
-            print(distance)
+            print(int(distance))
             if config.serial:
                 communicator.transdata(centre_x)
                 communicator.transdata(centre_y)
