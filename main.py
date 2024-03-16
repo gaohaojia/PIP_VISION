@@ -48,13 +48,17 @@ class Communicator():
             ser = serial.Serial(config.port, config.baudrate, timeout=config.timeout)
             ser.write(b'\x45')
 
+            print_info("Wait for serial signal.")
+
             # 获取红蓝信息
             while True:
                 if ser.read() == b'\xff':
                     config.color = 1
+                    print_info("Red.")
                     break
                 elif ser.read() == b'\xaa':
                     config.color = 2
+                    print_info("Blue.")
                     break
             print_info(f"Start serial Port: {config.port}, Baudrate: {config.baudrate}。")
         except:
@@ -181,7 +185,7 @@ def get_frame_process(config,
                 frame_pipe.send(frame)
             except:
                 error_cnt += 1
-                print_warn("[{error_cnt}]Can't get frame from MV camera!")
+                print_warn(f"[{error_cnt}]Can't get frame from MV camera!")
                 if error_cnt >= 10:
                     print_error("Can't get frame from MV camera!")
                     exit(0)
